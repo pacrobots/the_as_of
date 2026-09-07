@@ -11,6 +11,12 @@ AsOf::Broker.ensure!(realm)
 Rule.seed!
 
 # Commission the workforce.
+edgar_reporter = EdgarReporterAgent.register!(realm: realm, name: "EdgarReporter", readiness: "supervised")
+edgar_reporter.set_charter(mission: "Cover whitelist issuers. Extract filing headers then facts from source bytes. Only use provided text. Never invent numbers. A number not present in source bytes is dropped. No advice verbs. No forecasts as asserted claims.\n")
+
+brief_desk = BriefDeskAgent.register!(realm: realm, name: "BriefDesk", readiness: "supervised")
+brief_desk.set_charter(mission: "Answer brief/query from retrieved sources only. Headline at most 140 characters. Only use provided text. Never invent numbers. No advice verbs. No forecasts as asserted claims. Corrections append supersedes.\n")
+
 clerk = ClerkAgent.register!(realm: realm, name: "Clerk", readiness: "supervised")
 clerk.set_charter(mission: "Hold the record desk. Retrieve hashed public-record sources, filing headers, official series snapshots, seeded rule pointers, and watch lists. Do not extract claims, gloss, brief, or forecast. Unknown → say unknown. Do not paraphrase a rule without a pointer.\n")
 

@@ -40,8 +40,9 @@ class FilingTest < Lightyear::Support::TestCase
     assert_equal "0001045810-24-000123", payload["accession"]
     assert_equal "8-K", payload["form"]
     assert_equal "0001045810", payload["cik"]
-    assert_equal [], payload["facts"]
-    assert_equal [], payload["claims"]
+    refute_empty payload["facts"]
+    assert payload["facts"].all? { |f| f["source_id"] == filing.source.content_hash }
+    refute_empty payload["claims"]
   end
 
   test "same fixture re-ingest keeps one filing and one source hash" do

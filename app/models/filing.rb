@@ -26,9 +26,9 @@ class Filing < ApplicationRecord
       "cik" => cik,
       "form" => form,
       "filed_at" => filed_at.utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
-      "facts" => [],
-      "claims" => [],
-      "sections" => [],
+      "facts" => Array(facts),
+      "claims" => Array(claims),
+      "sections" => Array(sections),
       "as_of" => Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
     }
   end

@@ -42,6 +42,8 @@ module AsOf
         return list_watches(req)
       when ["POST", "/v1/watches"]
         return create_watch(req)
+      when ["POST", "/v1/brief/query"]
+        return brief_query(req)
       else
         if req.get? && (m = req.path.match(%r{\A/v1/source/(.+)\z}))
           source = Source.find_by(content_hash: m[1])
@@ -58,6 +60,12 @@ module AsOf
         end
         if req.delete? && (m = req.path.match(%r{\A/v1/watches/(.+)\z}))
           return delete_watch(req, m[1])
+        end
+        if req.get? && (m = req.path.match(%r{\A/v1/brief/(.+)\z}))
+          brief = Brief.find_by(id: m[1])
+          return json(404, { "error" => { "code" => "not_found", "message" => "not found" } }) unless brief
+
+          return json(200, brief.as_object.merge("as_of_data" => iso(brief.source&.published_at || brief.created_at)))
         end
         if req.get? && (m = req.path.match(%r{\A/v1/filing/(.+)\z}))
           filing = Filing.find_by(accession: m[1])
@@ -97,6 +105,17 @@ module AsOf
                                  watch: watch, types: types, entities: entities))
     rescue AsOf::State::LowData
       json(503, { "error" => { "code" => "low_data", "message" => "no series history at that time" } })
+    end
+
+    def brief_query(req)
+      payload = parse_json_body(req)
+      question = payload["question"].to_s
+      return json(422, { "error" => { "code" => "bad_request", "message" => "question required" } }) if question.empty?
+
+      brief = Brief.compose!(question: question, customer: current_customer(req))
+      json(200, brief.as_object)
+    rescue ArgumentError => e
+      json(422, { "error" => { "code" => "bad_request", "message" => e.message } })
     end
 
     def list_watches(req)

@@ -2,6 +2,7 @@
 
 require "as_of/edgar_header"
 require "as_of/blob_store"
+require "as_of/filing_extract"
 
 # Fetch-or-fixture → blob + Source, then header extract. Never calls a model.
 class IngestEdgarJob < ApplicationJob
@@ -20,6 +21,8 @@ class IngestEdgarJob < ApplicationJob
       license: "us_gov",
       store: store
     )
-    Filing.record_headers!(source: source, headers: headers)
+    filing = Filing.record_headers!(source: source, headers: headers)
+    AsOf::FilingExtract.run!(filing, bytes: bytes)
+    filing
   end
 end

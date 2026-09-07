@@ -26,6 +26,9 @@ domain:
         - { name: form, type: string, required: true }
         - { name: filed_at, type: datetime, required: true }
         - { name: company_name, type: string }
+        - { name: facts, type: json }
+        - { name: claims, type: json }
+        - { name: sections, type: json }
     - name: SeriesSnapshot
       unique: [[name, observed_at]]
       belongs_to: [source]
@@ -82,6 +85,24 @@ domain:
       belongs_to: [customer]
       fields:
         - { name: entities, type: json, required: true }
+    - name: Brief
+      unique: []
+      belongs_to:
+        - { entity: source, optional: true }
+        - { entity: customer, optional: true }
+      fields:
+        - { name: event_type, type: string, required: true }
+        - { name: headline, type: string, required: true }
+        - { name: status, type: string, required: true, default: ok, one_of: [ok, low_confidence, corrected] }
+        - { name: entities, type: json }
+        - { name: jurisdictions, type: json }
+        - { name: claims, type: json }
+        - { name: numbers, type: json }
+        - { name: exposures, type: json }
+        - { name: next_dates, type: json }
+        - { name: open_questions, type: json }
+        - { name: supersedes, type: json }
+        - { name: sources_json, type: json }
 
 connections:
   - name: edgar
@@ -116,8 +137,30 @@ skills:
     provides:
       - { verb: "watch/browse", reads: Watch }
       - { verb: "watch/describe", reads: Watch }
+  - name: briefs
+    provides:
+      - { verb: "brief/browse", reads: Brief }
+      - { verb: "brief/describe", reads: Brief }
 
 agents:
+  - name: EdgarReporter
+    kind: practitioner
+    readiness: supervised
+    charter:
+      mission: >
+        Cover whitelist issuers. Extract filing headers then facts from source bytes.
+        Only use provided text. Never invent numbers. A number not present in source
+        bytes is dropped. No advice verbs. No forecasts as asserted claims.
+    skills: [filings, sources]
+  - name: BriefDesk
+    kind: practitioner
+    readiness: supervised
+    charter:
+      mission: >
+        Answer brief/query from retrieved sources only. Headline at most 140 characters.
+        Only use provided text. Never invent numbers. No advice verbs. No forecasts
+        as asserted claims. Corrections append supersedes.
+    skills: [briefs, filings, sources, rules, series]
   - name: Clerk
     kind: practitioner
     readiness: supervised

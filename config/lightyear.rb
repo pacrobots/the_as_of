@@ -20,6 +20,7 @@ module AsOf
     config.autoload_paths << File.expand_path("../app/skills", __dir__)
     config.autoload_paths << File.expand_path("../app/conventions", __dir__)
     config.autoload_paths << File.expand_path("../app/jobs", __dir__)
+    config.autoload_paths << File.expand_path("../app/workflows", __dir__)
   end
 end
 
