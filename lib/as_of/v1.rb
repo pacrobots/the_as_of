@@ -5,6 +5,8 @@ require "rack"
 require "time"
 require_relative "../as_of"
 require_relative "state"
+require_relative "meter"
+require_relative "prices"
 
 module AsOf
   # Thin JSON catalog (PRD §5.1). Prefix-mounted on Server.app at `/v1`.
@@ -16,11 +18,22 @@ module AsOf
 
     def call(env)
       req = Rack::Request.new(env)
+      if (denied = AsOf::Meter.before(req))
+        return denied
+      end
+
+      status, headers, body = dispatch(req)
+      AsOf::Meter.after(req, status, headers, body)
+    end
+
+    def dispatch(req)
       case [req.request_method, req.path]
       when ["GET", "/v1/health"]
         json(200, { "ok" => true, "as_of" => now, "as_of_data" => nil, "dev_free" => AsOf.dev_free? })
       when ["GET", "/v1/openapi.json"]
         json(200, JSON.parse(File.read(OPENAPI_PATH)))
+      when ["GET", "/v1/prices"]
+        json(200, AsOf::Prices.as_json)
       when ["GET", "/v1/state"]
         return state(req)
       when ["GET", "/v1/diff"]

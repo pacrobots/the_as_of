@@ -48,6 +48,35 @@ domain:
         - { name: fragment, type: string }
         - { name: exposures, type: json }
         - { name: open_questions, type: json }
+    - name: Customer
+      unique: []
+      fields:
+        - { name: name, type: string }
+    - name: CreditKey
+      unique: [key_hash]
+      belongs_to: [customer]
+      fields:
+        - { name: key_hash, type: string, required: true }
+        - { name: prefix, type: string, required: true }
+    - name: Credit
+      unique: []
+      belongs_to: [customer]
+      fields:
+        - { name: balance_cents, type: integer, required: true, default: 0 }
+    - name: SkuEntitlement
+      unique: []
+      belongs_to: [customer]
+      fields:
+        - { name: sku, type: string, required: true, one_of: [consumer, practitioner, seat_pack, meter_only] }
+        - { name: brief_cap_month, type: integer }
+        - { name: included_cents, type: integer, required: true, default: 0 }
+    - name: UsageEvent
+      unique: []
+      belongs_to: [customer]
+      fields:
+        - { name: route, type: string, required: true }
+        - { name: status, type: integer, required: true }
+        - { name: price_cents, type: integer, required: true }
 
 connections:
   - name: edgar

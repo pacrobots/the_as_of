@@ -1,0 +1,13 @@
+currency: USD
+routes:
+  - { path: "/v1/state", class: cheap, usd: "0.03" }
+  - { path: "/v1/diff", class: cheap, usd: "0.05" }
+  - { path: "/v1/rule/{id}", class: standard, usd: "0.15" }
+  - { path: "/v1/filing/{accession}", class: standard, usd: "0.20" }
+  - { path: "/v1/explain/{t}/{id}", class: cheap, usd: "0.02" }
+  - { path: "/v1/brief/query", class: expensive, usd: "0.25" }
+skus:
+  - { id: consumer, usd_month: "20", included_usd: "5", brief_cap_month: 10 }
+  - { id: practitioner, usd_month: "80", included_usd: "20", brief_cap_month: 40 }
+  - { id: seat_pack, usd_year: "3000", seats: 10, included_usd: "200", brief_cap_month: 200 }
+  - { id: meter_only, usd_month: "0", included_usd: "0", brief_cap_month: null }
