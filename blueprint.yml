@@ -1,0 +1,35 @@
+# frozen shape of As-Of. Ceremony: plan → human go → apply.
+lightyear_version: "0.1"
+app:
+  name: as-of
+  summary: The agents' ledger of public record. Dated, hashed, diffable.
+
+domain:
+  entities:
+    - name: Source
+      unique: [content_hash]
+      fields:
+        - { name: kind, type: string, required: true, one_of: [edgar, federal_register, fred, treasury, irs, fomc, courtlistener, other] }
+        - { name: native_id, type: string, required: true }
+        - { name: url, type: string, required: true }
+        - { name: retrieved_at, type: datetime, required: true }
+        - { name: published_at, type: datetime }
+        - { name: content_hash, type: string, required: true }
+        - { name: bytes, type: integer, required: true }
+        - { name: license, type: string, required: true, default: unknown, one_of: [public_domain, us_gov, unknown] }
+
+skills:
+  - name: sources
+    provides:
+      - { verb: "source/browse", reads: Source }
+      - { verb: "source/describe", reads: Source }
+
+agents:
+  - name: Clerk
+    kind: practitioner
+    readiness: supervised
+    charter:
+      mission: >
+        Hold the record desk. Retrieve hashed public-record sources.
+        Do not extract claims, gloss, brief, or forecast. Unknown → say unknown.
+    skills: [sources]

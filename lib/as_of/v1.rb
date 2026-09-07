@@ -20,13 +20,20 @@ module AsOf
       when ["GET", "/v1/openapi.json"]
         json(200, JSON.parse(File.read(OPENAPI_PATH)))
       else
+        if req.get? && (m = req.path.match(%r{\A/v1/source/(.+)\z}))
+          source = Source.find_by(content_hash: m[1])
+          return json(404, { "error" => { "code" => "not_found", "message" => "not found" } }) unless source
+
+          return json(200, source.as_meta.merge("as_of" => now, "as_of_data" => iso(source.published_at || source.retrieved_at)))
+        end
         json(404, { "error" => { "code" => "not_found", "message" => "not found" } })
       end
     end
 
     private
 
-    def now = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+    def now = iso(Time.now)
+    def iso(time) = time.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
 
     def json(status, data)
       [status, { "content-type" => "application/json" }, [JSON.generate(data)]]

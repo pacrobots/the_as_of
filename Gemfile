@@ -8,6 +8,8 @@ source "https://rubygems.org"
 gem "lightyear", github: "pacificrobots/lightyear", branch: "feat/server-host-mounts"
 gem "lightyear-embedder-bge", github: "pacificrobots/lightyear", branch: "feat/server-host-mounts", glob: "gems/lightyear-embedder-bge/*.gemspec"
 gem "sqlite3", "~> 2.9"
+# json 3.0 dropped JSON.parse(str, opts); ActiveSupport 8.1 still passes quirks_mode.
+gem "json", "~> 2.13"
 gem "puma" # the Rack server `lightyear server` and config.ru run on
 # The LLM wire your agents' brains (and, if enabled, memory derivation) speak
 # through — one gem, every provider in config/runtimes.yml, cloud or local.
