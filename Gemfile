@@ -4,7 +4,7 @@ source "https://rubygems.org"
 
 # Pinned to the Server.mount branch until pacificrobots/lightyear#55 merges,
 # then switch both to branch: "main". Local override:
-#   bundle config local.lightyear /path/to/lightyear
+#   bundle config local.lightyear vendor/lightyear
 gem "lightyear", github: "pacificrobots/lightyear", branch: "feat/server-host-mounts"
 gem "lightyear-embedder-bge", github: "pacificrobots/lightyear", branch: "feat/server-host-mounts", glob: "gems/lightyear-embedder-bge/*.gemspec"
 gem "sqlite3", "~> 2.9"

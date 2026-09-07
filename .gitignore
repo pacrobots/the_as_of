@@ -1,5 +1,9 @@
 /.bundle
 
+# Local Lightyear checkout (not part of this product). Used for #55
+# and as a source overlay: `bundle config local.lightyear vendor/lightyear`
+/vendor/lightyear/
+
 /log/*
 !/log/.keep
 /tmp/*
