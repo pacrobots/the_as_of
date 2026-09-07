@@ -1,6 +1,5 @@
 # Kamal on skyvim, beside existing apps on kamal-proxy.
-# DNS: asof.pacrobots.com A → 5.78.95.164 (skyvim). theasof.com does not
-# currently point here — Let's Encrypt needs the name to resolve to this box.
+# DNS: theasof.com A → 5.78.95.164 (skyvim).
 service: as_of
 image: as_of
 
@@ -18,7 +17,9 @@ ssh:
 
 proxy:
   ssl: true
-  host: asof.pacrobots.com
+  hosts:
+    - theasof.com
+    - www.theasof.com
   app_port: 4321
   healthcheck:
     path: /v1/health
@@ -33,8 +34,8 @@ registry:
 env:
   clear:
     LIGHTYEAR_ENV: production
-    REALM_FQDN: asof.pacrobots.com
-    PUBLIC_BASE_URL: https://asof.pacrobots.com
+    REALM_FQDN: theasof.com
+    PUBLIC_BASE_URL: https://theasof.com
     CONTACT_EMAIL: brian@pacrobots.com
     RATE_LIMIT: "1"
     RATE_LIMIT_PER_MIN: "120"

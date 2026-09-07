@@ -58,7 +58,7 @@ class HardenTest < Lightyear::Support::TestCase
 
   test "deploy.yml carries CONTACT_EMAIL and a matching REALM_FQDN" do
     deploy = YAML.safe_load_file("config/deploy.yml")
-    host = deploy.dig("proxy", "host")
+    host = deploy.dig("proxy", "host") || Array(deploy.dig("proxy", "hosts")).first
     assert_equal host, deploy.dig("env", "clear", "REALM_FQDN")
     assert_equal "brian@pacrobots.com", deploy.dig("env", "clear", "CONTACT_EMAIL")
   end

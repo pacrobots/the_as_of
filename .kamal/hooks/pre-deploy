@@ -12,7 +12,7 @@ deploy   = YAML.load_file("config/deploy.yml") rescue nil
 failures << "config/deploy.yml unreadable" unless deploy
 
 if deploy
-  host = deploy.dig("proxy", "host").to_s
+  host = (deploy.dig("proxy", "host") || Array(deploy.dig("proxy", "hosts")).first).to_s
   failures << "proxy.host is still the placeholder (app.example.com) — set YOUR domain" if host.empty? || host == "app.example.com"
   failures << "servers still hold the placeholder IP (192.168.0.1)" if deploy.to_s.include?("192.168.0.1")
   failures << "proxy.ssl must be true — did:web REQUIRES https" unless deploy.dig("proxy", "ssl")

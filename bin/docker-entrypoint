@@ -2,5 +2,9 @@
 # Prepare the database on every container boot (idempotent; migrations ride
 # the framework's gem map), then hand off to the role's command.
 ./bin/lightyear db:prepare
-./bin/lightyear ledger verify --json
+if [ -n "${REALM_FQDN:-}" ]; then
+  ./bin/lightyear ledger verify --json "$REALM_FQDN"
+else
+  ./bin/lightyear ledger verify --json
+fi
 exec "$@"
