@@ -4,5 +4,6 @@ class ClerkAgent < ApplicationAgent
   kind :practitioner
   skill Sources
   skill Filings
+  skill Series
 end
 

@@ -26,6 +26,15 @@ domain:
         - { name: form, type: string, required: true }
         - { name: filed_at, type: datetime, required: true }
         - { name: company_name, type: string }
+    - name: SeriesSnapshot
+      unique: [[name, observed_at]]
+      belongs_to: [source]
+      fields:
+        - { name: name, type: string, required: true }
+        - { name: value, type: string, required: true }
+        - { name: unit, type: string, required: true }
+        - { name: vintage, type: string, required: true, one_of: [official, derived, estimated, delayed] }
+        - { name: observed_at, type: datetime, required: true }
 
 connections:
   - name: edgar
@@ -33,6 +42,11 @@ connections:
     credential: sec_user_agent
     provides:
       - { verb: "edgar/fetch", resource: accession, impact: low }
+  - name: fred
+    source_kind: http
+    credential: fred_api_key
+    provides:
+      - { verb: "fred/observations", resource: series_id, impact: low }
 
 skills:
   - name: sources
@@ -43,6 +57,10 @@ skills:
     provides:
       - { verb: "filing/browse", reads: Filing }
       - { verb: "filing/describe", reads: Filing }
+  - name: series
+    provides:
+      - { verb: "series/browse", reads: SeriesSnapshot }
+      - { verb: "series/describe", reads: SeriesSnapshot }
 
 agents:
   - name: Clerk
@@ -50,6 +68,7 @@ agents:
     readiness: supervised
     charter:
       mission: >
-        Hold the record desk. Retrieve hashed public-record sources and filing headers.
-        Do not extract claims, gloss, brief, or forecast. Unknown → say unknown.
-    skills: [sources, filings]
+        Hold the record desk. Retrieve hashed public-record sources, filing headers,
+        and official series snapshots. Do not extract claims, gloss, brief, or forecast.
+        Unknown → say unknown.
+    skills: [sources, filings, series]

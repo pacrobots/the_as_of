@@ -2,7 +2,9 @@
 
 require "json"
 require "rack"
+require "time"
 require_relative "../as_of"
+require_relative "state"
 
 module AsOf
   # Thin JSON catalog (PRD §5.1). Prefix-mounted on Server.app at `/v1`.
@@ -19,6 +21,10 @@ module AsOf
         json(200, { "ok" => true, "as_of" => now, "as_of_data" => nil, "dev_free" => AsOf.dev_free? })
       when ["GET", "/v1/openapi.json"]
         json(200, JSON.parse(File.read(OPENAPI_PATH)))
+      when ["GET", "/v1/state"]
+        return state(req)
+      when ["GET", "/v1/diff"]
+        return diff(req)
       else
         if req.get? && (m = req.path.match(%r{\A/v1/source/(.+)\z}))
           source = Source.find_by(content_hash: m[1])
@@ -38,6 +44,30 @@ module AsOf
     end
 
     private
+
+    def state(req)
+      payload = AsOf::State.snapshot(at: parse_time(req.params["at"]), since: parse_time(req.params["since"]))
+      json(200, payload)
+    rescue AsOf::State::LowData
+      json(503, { "error" => { "code" => "low_data", "message" => "no series history at that time" } })
+    end
+
+    def diff(req)
+      since = parse_time(req.params["since"])
+      return json(422, { "error" => { "code" => "bad_request", "message" => "since is required" } }) unless since
+
+      json(200, AsOf::State.diff(since: since, at: parse_time(req.params["at"])))
+    rescue AsOf::State::LowData
+      json(503, { "error" => { "code" => "low_data", "message" => "no series history at that time" } })
+    end
+
+    def parse_time(value)
+      return nil if value.to_s.empty?
+
+      Time.iso8601(value)
+    rescue ArgumentError
+      Time.parse(value)
+    end
 
     def now = iso(Time.now)
     def iso(time) = time.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
