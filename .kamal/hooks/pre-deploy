@@ -1,0 +1,40 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Lightyear's deployment ceremony — the preflight (docs/design/deploy-estate.md).
+# Runs on EVERY `kamal deploy`, whoever invokes it; a non-zero exit ABORTS
+# the deploy. Deploying a Realm activates a did:web identity — these checks
+# keep a mis-deployed identity from ever going live.
+require "yaml"
+
+failures = []
+deploy   = YAML.load_file("config/deploy.yml") rescue nil
+failures << "config/deploy.yml unreadable" unless deploy
+
+if deploy
+  host = deploy.dig("proxy", "host").to_s
+  failures << "proxy.host is still the placeholder (app.example.com) — set YOUR domain" if host.empty? || host == "app.example.com"
+  failures << "servers still hold the placeholder IP (192.168.0.1)" if deploy.to_s.include?("192.168.0.1")
+  failures << "proxy.ssl must be true — did:web REQUIRES https" unless deploy.dig("proxy", "ssl")
+
+  # The identity agreement: the domain you deploy to IS your Realm's DID.
+  production = File.read("config/environments/production.rb") rescue ""
+  fqdn = production[/realm_fqdn\s*=\s*["']([^"']+)["']/, 1]
+  if fqdn && !host.empty? && fqdn != host
+    failures << "identity mismatch: deploy.yml proxy.host=#{host.inspect} but " \
+                "production realm_fqdn=#{fqdn.inspect} — a Realm deployed to the wrong domain isn't itself"
+  end
+
+  secrets = File.read(".kamal/secrets") rescue ""
+  # An ACTIVE line, not a comment example — the check must not be satisfied
+  # by the template's own documentation.
+  delivers_master = secrets.lines.any? { |l| l.match?(/^\s*LIGHTYEAR_MASTER_KEY=/) }
+  failures << ".kamal/secrets must deliver LIGHTYEAR_MASTER_KEY (the credentials store refuses to boot without it)" unless delivers_master
+end
+
+if failures.any?
+  warn "[lightyear pre-deploy] the ceremony REFUSED this deploy:"
+  failures.each { |f| warn "  ✗ #{f}" }
+  exit 1
+end
+puts "[lightyear pre-deploy] ceremony green — identity, TLS, and secrets agree"

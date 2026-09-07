@@ -2,14 +2,14 @@
 
 Audience: coding agent implementing this repo. If a feature is not in this file, do not build it. Do not invent a CMS, magazine, Opinion desk, or marketing site.
 
-Canonical host (v1 public): `citedstate.com`  
-JSON reads: `https://citedstate.com/v1`  
-MCP: `https://citedstate.com/mcp`  
+Canonical host (v1 public): `theasof.com`  
+JSON reads: `https://theasof.com/v1`  
+MCP: `https://theasof.com/mcp`  
 Product string: `As-Of` — `The agents' ledger of public record. Dated, hashed, diffable.`  
 User-Agent for fetchers: `AsOf/0.1 (+CONTACT_EMAIL)`  
 Do not use hostname `agentledger.com` / `agentledger.io`.
 
-Owned aliases (redirect only): `asofrecord.com`, `asofledger.com`, `theasof.com` if pointed here.
+Owned aliases (redirect only): `asofrecord.com`, `asofledger.com`, `citedstate.com` if pointed here.
 
 ## 0. Mission (constraints)
 
@@ -54,7 +54,7 @@ Standalone Lightyear app. Realm = TAO. `lightyear new` from `pacificrobots/light
 
 Lightyear primitives used as-is: Agents, Charters, Writs, Reach, Jobs, Cadence, Initiative, Workflow, Memory, Ledger, Connections, MCP membrane, A2A/MTP, Commerce (x402 + Stripe), MSV, Eval. Do not reimplement them.
 
-Until Lightyear composes `config/routes.rb`, mount extras in `config.ru` via `Rack::Builder`: `/mcp`, `/v1`, then `run Lightyear::Server.app`. No ungoverned write controllers. Writes are Reach or MCP `tools/call` (same gate).
+Host Rack apps join `Lightyear::Server.app` via `Server.mount` (same stack as `lightyear server` and `config.ru`; see pacificrobots/lightyear#55). No ungoverned write controllers. Writes are Reach or MCP `tools/call` (same gate).
 
 ### 3.1 Three stores (invariant)
 
@@ -84,7 +84,8 @@ config/
   watchlists.yaml
   agencies.yaml
   routes.rb        # stub until framework composes it
-config.ru          # Rack::Builder mounts
+config.ru          # run Lightyear::Server.app
+config/initializers/v1.rb   # Server.mount "/v1"
 db/migrate/
 schemas/           # JSON Schema copies of §4
 test/fixtures/{edgar,fred,fr}/
@@ -459,7 +460,7 @@ Fixtures only. No live SEC in CI. Nightly `INGEST_LIVE=1` is separate. HTTP and 
 
 Each sprint: tests for that sprint green before next.
 
-**S0** `lightyear new tao`. Realm, genesis, Postgres, `config.ru` mounts, `/v1/health`, `/v1/openapi.json` stub, `DEV_FREE`.
+**S0** `lightyear new`. Realm, genesis, SQLite locally, `Server.mount "/v1"`, `/v1/health`, `/v1/openapi.json` stub, `DEV_FREE`.
 
 **S1** Source + blob CAS + hash uniqueness. Put/get bytes. Re-ingest same bytes → one row.
 
@@ -496,7 +497,7 @@ X402_ENABLED
 LLM_API_KEY
 LLM_MAX_USD_PER_DAY
 CREDIT_DEFAULT_USD
-PUBLIC_BASE_URL=https://citedstate.com
+PUBLIC_BASE_URL=https://theasof.com
 ```
 
 Plus Lightyear Realm/credentials store (LLM provider, Stripe, x402 wallet) — never plaintext in production.

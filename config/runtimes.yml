@@ -1,0 +1,98 @@
+# config/runtimes.yml — backends and their credentials, per environment
+# (Lightyear's database.yml-analog). Configures Memory recall, the default-agents'
+# LLM runtime (provider/model), and the WIRE (cross-Realm delivery).
+#
+# The wire (off until you name a binding — a Motion addressed to another Realm
+# stays a local record until then, and dispatch says so):
+#
+#   wire:
+#     binding: a2a          # MTP over A2A — real HTTP, RFC-9421-signed
+#     # Dev peer map (development only, in the development: section): route these
+#     # fqdns over plaintext loopback with an honest Host header, so two Realms
+#     # on one machine converse without DNS or TLS. fqdn -> host:port.
+#     # A convenience, never a requirement — unmapped fqdns resolve normally,
+#     # and inbound strangers are accepted either way (trust is per-message).
+#     # peers:
+#     #   maplestone.localhost: "127.0.0.1:4322"
+#
+# Memory recall modes:
+#   hybrid  (default)  — keyword search PLUS a semantic signal, fused together, so recall
+#                        finds a memory even when the question shares no words with it
+#                        ("what should I get the dog?" -> "Buster's on a salmon diet").
+#                        The semantic signal runs on the BUNDLED LOCAL EMBEDDING MODEL —
+#                        NOT an LLM (it fingerprints text for ranking; it doesn't chat or
+#                        reason — your agents' thinking still runs on the LLM you configure
+#                        under `agents:` below). It came with your bundle (the
+#                        lightyear-embedder-bge gem): in-process, no API key, no vector
+#                        database, no runtime downloads — your beliefs and queries never
+#                        leave the machine. Swap in a cloud embedder per environment below
+#                        when you want a bigger model (a CUSTOM model fetches once from
+#                        Hugging Face — announced, never silent; `rake memory:prefetch`
+#                        does it deliberately).
+#   lexical            — keyword-only: BM25 with stemming (so "ship" finds "shipped") via
+#                        the database's own full-text engine (SQLite FTS5 / Postgres
+#                        tsvector). The explicit opt-out: no model, no download — right for
+#                        deterministic CI and air-gapped boxes. (A query that matches
+#                        nothing returns nothing, never noise.)
+default: &default
+  memory:
+    recall: hybrid
+    # The bundled local embedder — stated here so the default is visible and swappable.
+    # The model/quantization/revision are pinned framework defaults; override to taste:
+    embedder:
+      provider: local
+      # model:  Xenova/bge-small-en-v1.5
+      # dtype:  q8
+    # Unprompted learning and the dream — LLM reasoning on YOUR bill, so both are
+    # opt-in and off by default (nothing derives or consolidates until you say so;
+    # the Memory guide's "NOTHING DREAMS BEHIND YOUR BACK" explains the posture):
+    # derivation: agent    # the brain: close-time conversation notes + consolidation
+    # dream:
+    #   every: "1.day"     # the rhythm: scheduled consolidation, one pass per room
+  # The default-agents' brain (The Engineer + any framework default agents). Unset = this
+  # app inherits the machine's named provider (LIGHTYEAR_LLM_PROVIDER, or the operator
+  # file `lightyear new`'s first-run picker wrote — names only). Any provider the model
+  # layer speaks works, cloud or local; set THAT provider's key or address in your env /
+  # the credentials store (secrets are resolved by provider, never written here — and
+  # never read unless the provider is named: the consent line). Validate any choice with
+  # `rake eval:engineer`, which scores the model on The Engineer's own exam.
+  # agents:
+  #   runtime:
+  #     provider: <%= ENV.fetch("LIGHTYEAR_LLM_PROVIDER", "anthropic") %>
+  #     model:    <%= ENV.fetch("LIGHTYEAR_LLM_MODEL", "claude-opus-4-8") %>
+  #     # temperature: 0.3            # optional — only if your model supports it (Opus 4.8 doesn't)
+  #     # params: { max_tokens: 4000 }
+
+development:
+  <<: *default            # hybrid on the local model — offline, no key
+
+test:
+  <<: *default
+  memory:
+    recall: lexical       # deterministic, no model download in CI
+
+production:
+  <<: *default
+  # The bundled local embedding model works in production too — it shipped with your
+  # bundle, so there is nothing to pre-warm and no network to allow. To upgrade the
+  # semantic signal to a cloud embedding model instead:
+  #
+  # memory:
+  #   recall: hybrid
+  #   embedder:
+  #     provider: openai
+  #     model:    text-embedding-3-small
+  #     api_key:  <%= ENV["OPENAI_API_KEY"] %>
+  #   # min_similarity gates the semantic signal: a cosine below it is dropped, so
+  #   # recall won't surface weak matches. Off by default (returns the nearest); tune
+  #   # it for your model — higher is stricter. Start unset, raise if recall feels loose.
+  #   # min_similarity: 0.75
+  #   #
+  #   # backend: which engine answers the semantic nearest-neighbor lookup.
+  #   #   in_ruby (default) — cosine in Ruby; no infra, fine for normal relationships.
+  #   #   neighbor          — an indexed Postgres column via the `neighbor` gem (add it
+  #   #                       to your Gemfile), for a relationship holding many thousands
+  #   #                       of beliefs, or realm-wide search. Run `lightyear memory
+  #   #                       index_setup` once, then set this.
+  #   # Switching backends never re-embeds — the index is rebuilt from your embeddings.
+  #   # backend: in_ruby

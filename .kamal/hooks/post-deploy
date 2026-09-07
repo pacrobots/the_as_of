@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# The deployment checkride — the face, probed over the REAL internet the
+# moment the deploy lands (docs/design/deploy-estate.md): the DID resolves
+# over valid TLS, the card serves, the wire refuses cleanly. Organs (chain,
+# migrations, the clock's pulse) are one `kamal doctor` away — run it after
+# first deploys and after anything surprising.
+require "yaml"
+
+host = YAML.load_file("config/deploy.yml").dig("proxy", "host") rescue nil
+if host.to_s.empty? || host == "app.example.com"
+  warn "[lightyear post-deploy] no real proxy.host configured; skipping the face probes"
+  exit 0
+end
+
+puts "[lightyear post-deploy] the deployment checkride — https://#{host}"
+ok = system("./bin/lightyear", "doctor", "https://#{host}")
+unless ok
+  warn "[lightyear post-deploy] FACE PROBES RED — the deploy completed but the Realm " \
+       "is not itself yet (DNS/TLS/proxy?). Fix, redeploy or `kamal doctor` for organs."
+  exit 1
+end
+puts "[lightyear post-deploy] face green — run `kamal doctor` any time for the organs"

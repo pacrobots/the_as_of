@@ -1,0 +1,66 @@
+# Kamal deployment (docs/design/deploy-estate.md; kamal-deploy.org).
+# Fill the placeholders, `kamal setup` once, then `kamal deploy` — the
+# pre-deploy hook runs Lightyear's ceremony checks and ABORTS on failure;
+# the post-deploy hook runs the doctor's face probes against your domain.
+service: as_of
+image: your-registry-user/as_of
+
+servers:
+  web:
+    hosts:
+      - 192.168.0.1            # <- your server
+  jobs:
+    hosts:
+      - 192.168.0.1            # FIRST server only: this role carries --clock,
+                               # and there must be exactly ONE clock (the
+                               # Cadence engine; multi-clock HA is a tracked
+                               # framework milestone). Extra jobs hosts run
+                               # plain `bin/lightyear jobs` — more hands,
+                               # same single metronome.
+    cmd: ./bin/lightyear jobs --clock
+
+proxy:
+  ssl: true                    # did:web REQUIRES https — not optional here
+  host: app.example.com        # <- YOUR DOMAIN. This IS your Realm's identity:
+                               # it must agree with realm_fqdn in
+                               # config/environments/production.rb (the
+                               # pre-deploy hook checks the agreement —
+                               # a Realm deployed to the wrong domain isn't itself).
+  app_port: 4321
+
+volumes:
+  - "as_of_storage:/app/storage"   # SQLite + storage survive deploys
+
+registry:
+  username: your-registry-user
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+env:
+  clear:
+    LIGHTYEAR_ENV: production
+  secret:
+    - LIGHTYEAR_MASTER_KEY     # the credentials store refuses to boot without it
+
+builder:
+  arch: amd64
+  secrets:
+    - lightyear_gem_read_token # TRANSITIONAL: private-gem read at build; dies at gold master
+
+aliases:
+  doctor: app exec --reuse "./bin/lightyear doctor"   # the organs, on demand
+  console: app exec --interactive --reuse "./bin/lightyear console"
+  logs: app logs --follow
+
+# ── the step-up, when you need it (NOT for "semantic recall" — that's
+# already fully local on SQLite via the bundled embedder). Uncomment when
+# recall SCALE (ANN over a large store) or multi-host web demands it: ──
+# accessories:
+#   db:
+#     image: pgvector/pgvector:pg17
+#     host: 192.168.0.1
+#     env:
+#       secret:
+#         - POSTGRES_PASSWORD
+#     directories:
+#       - data:/var/lib/postgresql/data

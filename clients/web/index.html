@@ -1,0 +1,65 @@
+<!doctype html>
+<!-- The minimal posture-B web client: YOUR app code, not the framework's
+     ("structured surfaces, not pixels" — Lightyear ships no renderer).
+     Fetches the manifest once and the envelope per paint; renders every
+     node as a generic card until you register real renderers. Serve it
+     any way you like; the app stays fully headless without it. -->
+<meta charset="utf-8"><title>as_of</title>
+<style>
+  body { font: 16px system-ui; background: #0e1217; color: #e7eef6; margin: 2rem auto; max-width: 40rem; }
+  .card { background: #161c24; border: 1px solid #26313f; border-radius: 12px; padding: 1rem; margin: .6rem 0; }
+  .goal { color: #8593a3; font-size: .8em; text-transform: uppercase; letter-spacing: .06em; }
+</style>
+<h1>as_of</h1>
+<div id="surface">Sign in at <a href="/auth/login">/auth/login</a>, then reload.</div>
+<script>
+  // Signed out, the face still shows WHO this app is — the identity card
+  // (the DID document is public by design; the card is the storyboard's
+  // beat-one frame). Signed in, the envelope replaces it.
+  async function identityCard() {
+    try {
+      const res = await fetch("/.well-known/did.json", { headers: { accept: "application/json" } });
+      if (!res.ok) return;
+      const doc = await res.json();
+      const el = document.getElementById("surface");
+      el.innerHTML = "";
+      const card = document.createElement("div");
+      card.className = "card";
+      const did = document.createElement("div");
+      did.className = "goal"; did.textContent = doc.id || "";
+      const line = document.createElement("div");
+      line.append("Sign in at ");
+      const a = document.createElement("a");
+      a.href = "/auth/login"; a.textContent = "/auth/login";
+      line.append(a, " to see your surfaces.");
+      card.append(did, line); el.append(card);
+    } catch {} // the card is a courtesy — never an error
+  }
+  async function paint() {
+    const res = await fetch("/app/envelope", { headers: { accept: "application/json" } });
+    if (!res.ok) { identityCard(); return; }
+    const { surfaces } = await res.json();
+    const el = document.getElementById("surface");
+    el.innerHTML = "";
+    for (const s of surfaces) {
+      const goal = document.createElement("div");
+      goal.className = "goal"; goal.textContent = s.goal; el.appendChild(goal);
+      for (const node of s.tree) {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.textContent = node.properties.title || node.component;
+        const body = document.createElement("div");
+        body.textContent = node.properties.body || JSON.stringify(node.properties);
+        card.appendChild(body); el.appendChild(card);
+      }
+    }
+    // The client convention (docs/design/dev-loop.md): repaint on "reshaped"
+    // AND on stream (re)connect — the stream is stateless by design, so a
+    // dev-loop restart reconnects it and this line repaints the screen:
+    // edit a panel, save, watch it reshape.
+    const stream = new EventSource("/app/stream");
+    stream.addEventListener("reshaped", () => location.reload());
+    stream.onopen = () => { if (stream.reconnected) location.reload(); stream.reconnected = true; };
+  }
+  paint();
+</script>

@@ -1,0 +1,6 @@
+.git
+.kamal
+log/*
+tmp/*
+storage/*
+clients/node_modules

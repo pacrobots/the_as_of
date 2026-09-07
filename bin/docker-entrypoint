@@ -1,0 +1,5 @@
+#!/bin/bash -e
+# Prepare the database on every container boot (idempotent; migrations ride
+# the framework's gem map), then hand off to the role's command.
+./bin/lightyear db:prepare
+exec "$@"

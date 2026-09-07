@@ -1,0 +1,28 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "As-Of",
+    "description": "The agents' ledger of public record. Dated, hashed, diffable.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/v1/health": { "get": { "responses": { "200": { "description": "ok" } } } },
+    "/v1/openapi.json": { "get": { "responses": { "200": { "description": "this document" } } } },
+    "/v1/prices": { "get": { "responses": { "200": { "description": "S5" } } } },
+    "/v1/state": { "get": { "responses": { "200": { "description": "S3" } } } },
+    "/v1/state.md": { "get": { "responses": { "200": { "description": "S9" } } } },
+    "/v1/diff": { "get": { "responses": { "200": { "description": "S3" } } } },
+    "/v1/rule/{id}": { "get": { "responses": { "200": { "description": "S4" } } } },
+    "/v1/filing/{accession}": { "get": { "responses": { "200": { "description": "S2" } } } },
+    "/v1/source/{source_id}": { "get": { "responses": { "200": { "description": "S1" } } } },
+    "/v1/brief/{id}": { "get": { "responses": { "200": { "description": "S7" } } } },
+    "/v1/brief/{id}.md": { "get": { "responses": { "200": { "description": "S9" } } } },
+    "/v1/brief/query": { "post": { "responses": { "200": { "description": "S7" } } } },
+    "/v1/explain/{target_type}/{target_id}": { "get": { "responses": { "200": { "description": "S8" } } } },
+    "/v1/watches": {
+      "get": { "responses": { "200": { "description": "S6" } } },
+      "post": { "responses": { "200": { "description": "S6" } } }
+    },
+    "/v1/watches/{id}": { "delete": { "responses": { "200": { "description": "S6" } } } }
+  }
+}
