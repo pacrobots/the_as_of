@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/pacificrobots/lightyear.git
-  revision: f56a573992d9113d55681affcfde404a5dc84702
+  revision: 3349d403ef6cf4f3ceee7d520272ff4c817dd57b
   branch: feat/server-host-mounts
   specs:
     lightyear (0.0.1)
@@ -106,7 +106,7 @@ GIT
 
 GIT
   remote: https://github.com/pacificrobots/lightyear.git
-  revision: f56a573992d9113d55681affcfde404a5dc84702
+  revision: 3349d403ef6cf4f3ceee7d520272ff4c817dd57b
   branch: feat/server-host-mounts
   glob: gems/lightyear-embedder-bge/*.gemspec
   specs:
