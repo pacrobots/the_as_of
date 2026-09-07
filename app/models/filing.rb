@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "as_of/handles"
+
 class Filing < ApplicationRecord
   belongs_to :source
   validates :accession, presence: true
@@ -17,6 +19,8 @@ class Filing < ApplicationRecord
       company_name: headers.company_name,
       source: source
     )
+    AsOf::Handles.ensure!("cik:#{rec.cik}", display: rec.company_name)
+    AsOf::Handles.ensure!("accession:#{rec.accession}", display: rec.form)
     rec
   end
 

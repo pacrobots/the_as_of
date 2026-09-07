@@ -45,6 +45,9 @@ module AsOf
       when ["POST", "/v1/brief/query"]
         return brief_query(req)
       else
+        if req.get? && (m = req.path.match(%r{\A/v1/explain/([^/]+)/(.+)\z}))
+          return explain(m[1], m[2])
+        end
         if req.get? && (m = req.path.match(%r{\A/v1/source/(.+)\z}))
           source = Source.find_by(content_hash: m[1])
           return json(404, { "error" => { "code" => "not_found", "message" => "not found" } }) unless source
@@ -105,6 +108,15 @@ module AsOf
                                  watch: watch, types: types, entities: entities))
     rescue AsOf::State::LowData
       json(503, { "error" => { "code" => "low_data", "message" => "no series history at that time" } })
+    end
+
+    def explain(target_type, target_id)
+      gloss = Gloss.explain!(target_type, target_id)
+      json(200, gloss.as_object.merge("as_of" => now, "as_of_data" => gloss.as_of_data && iso(gloss.as_of_data)))
+    rescue ActiveRecord::RecordNotFound
+      json(404, { "error" => { "code" => "not_found", "message" => "not found" } })
+    rescue ArgumentError => e
+      json(422, { "error" => { "code" => "bad_request", "message" => e.message } })
     end
 
     def brief_query(req)

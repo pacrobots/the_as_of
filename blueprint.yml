@@ -103,6 +103,18 @@ domain:
         - { name: open_questions, type: json }
         - { name: supersedes, type: json }
         - { name: sources_json, type: json }
+    - name: Gloss
+      unique: [[target_type, target_id, prompt_hash]]
+      fields:
+        - { name: target_type, type: string, required: true, one_of: [claim, number, rule, filing, series, entity, brief] }
+        - { name: target_id, type: string, required: true }
+        - { name: text, type: text, required: true }
+        - { name: source_ids, type: json }
+        - { name: status, type: string, required: true, one_of: [ok, low_confidence] }
+        - { name: as_of_data, type: datetime }
+        - { name: prompt_hash, type: string, required: true }
+        - { name: input_hash, type: string, required: true }
+        - { name: model, type: string, required: true }
 
 connections:
   - name: edgar
@@ -141,8 +153,21 @@ skills:
     provides:
       - { verb: "brief/browse", reads: Brief }
       - { verb: "brief/describe", reads: Brief }
+  - name: glosses
+    provides:
+      - { verb: "gloss/browse", reads: Gloss }
+      - { verb: "gloss/describe", reads: Gloss }
 
 agents:
+  - name: GlossWriter
+    kind: practitioner
+    readiness: supervised
+    charter:
+      mission: >
+        Explain a record in at most eight sentences. Every sentence must be
+        supportable by source_ids. No new numbers. No advice verbs. No forecasts.
+        Task is gloss only.
+    skills: [glosses, rules, filings, sources]
   - name: EdgarReporter
     kind: practitioner
     readiness: supervised

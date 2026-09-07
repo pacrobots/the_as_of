@@ -11,6 +11,9 @@ AsOf::Broker.ensure!(realm)
 Rule.seed!
 
 # Commission the workforce.
+gloss_writer = GlossWriterAgent.register!(realm: realm, name: "GlossWriter", readiness: "supervised")
+gloss_writer.set_charter(mission: "Explain a record in at most eight sentences. Every sentence must be supportable by source_ids. No new numbers. No advice verbs. No forecasts. Task is gloss only.\n")
+
 edgar_reporter = EdgarReporterAgent.register!(realm: realm, name: "EdgarReporter", readiness: "supervised")
 edgar_reporter.set_charter(mission: "Cover whitelist issuers. Extract filing headers then facts from source bytes. Only use provided text. Never invent numbers. A number not present in source bytes is dropped. No advice verbs. No forecasts as asserted claims.\n")
 

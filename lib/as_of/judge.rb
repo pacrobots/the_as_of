@@ -22,5 +22,13 @@ module AsOf
     end
 
     def advice?(text) = text.to_s.match?(ADVICE)
+
+    def numbers_in(text)
+      text.to_s.scan(/\d+(?:,\d{3})*(?:\.\d+)?/)
+    end
+
+    def ungrounded_numbers(text, corpus)
+      numbers_in(text).reject { |n| in_source?(n, corpus) }
+    end
   end
 end
