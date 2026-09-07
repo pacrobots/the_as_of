@@ -17,12 +17,11 @@ if deploy
   failures << "servers still hold the placeholder IP (192.168.0.1)" if deploy.to_s.include?("192.168.0.1")
   failures << "proxy.ssl must be true — did:web REQUIRES https" unless deploy.dig("proxy", "ssl")
 
-  # The identity agreement: the domain you deploy to IS your Realm's DID.
-  production = File.read("config/environments/production.rb") rescue ""
-  fqdn = production[/realm_fqdn\s*=\s*["']([^"']+)["']/, 1]
-  if fqdn && !host.empty? && fqdn != host
-    failures << "identity mismatch: deploy.yml proxy.host=#{host.inspect} but " \
-                "production realm_fqdn=#{fqdn.inspect} — a Realm deployed to the wrong domain isn't itself"
+  # Identity: proxy.host must match env REALM_FQDN (the did:web name).
+  fqdn = deploy.dig("env", "clear", "REALM_FQDN").to_s
+  fqdn = host if fqdn.empty?
+  if !host.empty? && fqdn != host
+    failures << "identity mismatch: proxy.host=#{host.inspect} but REALM_FQDN=#{fqdn.inspect}"
   end
 
   secrets = File.read(".kamal/secrets") rescue ""
@@ -33,7 +32,6 @@ if deploy
 
   env = deploy.dig("env", "clear").to_h
   failures << "env.clear.CONTACT_EMAIL is required (SEC User-Agent)" if env["CONTACT_EMAIL"].to_s.strip.empty?
-  failures << "proxy.host should be theasof.com (aliases redirect later)" if host != "theasof.com" && host != "app.example.com"
 end
 
 if failures.any?

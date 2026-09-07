@@ -42,3 +42,13 @@ Edge rate limit: in-process on `/v1` and `/mcp` (`RATE_LIMIT=1`, `RATE_LIMIT_PER
 Redirect hosts later (not this sprint): `asofrecord.com`, `asofledger.com`, `citedstate.com` → `theasof.com`.
 
 FRED: this product uses the FRED® API but is not endorsed or certified by the Federal Reserve Bank of St. Louis. Public notices: `GET /v1/notices`. Secrets live in the Realm credentials store (`fred_api_key`), not in git.
+
+## Skyvim staging
+
+Host: `asof.pacrobots.com` (Kamal on `skyvim`, user `bkkriese`). HTTP Basic password in `.kamal/site_password` — any IP, no allowlist. `/v1/health` stays open for the proxy.
+
+```
+kamal deploy
+```
+
+DNS: `asof.pacrobots.com` A → `5.78.95.164`. `theasof.com` currently does not point at Skyvim.
