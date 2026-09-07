@@ -9,6 +9,7 @@ require_relative "meter"
 require_relative "prices"
 require_relative "markdown"
 require_relative "rate_limit"
+require_relative "notices"
 require_relative "../../app/msv/pages/state_page"
 
 module AsOf
@@ -35,13 +36,16 @@ module AsOf
     def dispatch(req)
       case [req.request_method, req.path]
       when ["GET", "/v1/health"]
-        json(200, { "ok" => true, "as_of" => now, "as_of_data" => nil, "dev_free" => AsOf.dev_free? })
+        json(200, { "ok" => true, "as_of" => now, "as_of_data" => nil, "dev_free" => AsOf.dev_free?,
+                    "fred_disclaimer" => AsOf::Notices::FRED_DISCLAIMER })
       when ["GET", "/v1/openapi.json"]
         json(200, JSON.parse(File.read(OPENAPI_PATH)))
       when ["GET", "/v1/prices"]
         json(200, AsOf::Prices.as_json)
+      when ["GET", "/v1/notices"]
+        json(200, AsOf::Notices.public_payload)
       when ["GET", "/v1/catalog"]
-        json(200, StatePage.teaser)
+        json(200, StatePage.teaser.merge("notices" => AsOf::Notices.public_payload))
       when ["GET", "/v1/state"]
         return state(req)
       when ["GET", "/v1/state.md"]

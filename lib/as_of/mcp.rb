@@ -5,6 +5,7 @@ require "rack"
 require_relative "state"
 require_relative "meter"
 require_relative "rate_limit"
+require_relative "notices"
 
 module AsOf
   # JSON-RPC MCP edge wrapping the same domain reads as /v1. Menu is the tool
@@ -49,7 +50,9 @@ module AsOf
     def dispatch(msg, req)
       case msg["method"]
       when "initialize"
-        { "protocolVersion" => "2024-11-05", "serverInfo" => { "name" => "as-of", "version" => "0.1.0" },
+        { "protocolVersion" => "2024-11-05",
+          "serverInfo" => { "name" => "as-of", "version" => "0.1.0",
+                            "disclaimer" => AsOf::Notices::FRED_DISCLAIMER },
           "capabilities" => { "tools" => {} } }
       when "tools/list"
         { "tools" => TOOLS }

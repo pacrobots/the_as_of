@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "as_of/catalog"
+
 class SeriesSnapshot < ApplicationRecord
   belongs_to :source
   validates :name, presence: true
@@ -17,13 +19,15 @@ class SeriesSnapshot < ApplicationRecord
   end
 
   def as_fact
+    spec = AsOf::Catalog.series_named(name) || {}
     {
       "name" => name,
       "value" => numeric_or_string,
       "unit" => unit,
       "vintage" => vintage,
       "as_of" => observed_at.utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
-      "source_id" => source.content_hash
+      "source_id" => source.content_hash,
+      "citation" => spec["citation"]
     }
   end
 

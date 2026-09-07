@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require_relative "../config/lightyear"
+require "yaml"
 
 cmd = ARGV.shift
 case cmd
@@ -23,16 +24,41 @@ when "snapshot"
 when "ingest-live"
   abort "refusing: set INGEST_LIVE=1" unless ENV["INGEST_LIVE"] == "1"
   AsOf.sec_user_agent
-  abort "FRED_API_KEY required" if ENV["FRED_API_KEY"].to_s.empty?
-  abort "ingest-live HTTP fetch not wired; jobs should use Connections + whitelist"
+  require "as_of/secrets"
+  abort "FRED API key missing" unless AsOf::Secrets.fred_api_key?
+  YAML.safe_load_file(File.expand_path("../config/state_series.yaml", __dir__)).fetch("series").each do |row|
+    next unless row["source"] == "fred"
+    IngestFredJob.perform_now(name: row["name"])
+    puts "fred #{row['name']} ok"
+  end
+when "fetches"
+  n = (ARGV[0] || 20).to_i
+  FetchLog.order(id: :desc).limit(n).each do |row|
+    puts [row.created_at.utc.iso8601, row.source_kind, row.native_id, row.http_status,
+          row.outcome, row.content_hash, row.error_message].compact.join(" ")
+  end
+when "ingest-status"
+  %w[edgar fred].each do |kind|
+    row = FetchLog.last_ok(kind)
+    if row
+      puts "#{kind} last=#{row.created_at.utc.iso8601} outcome=#{row.outcome} hash=#{row.content_hash}"
+    else
+      puts "#{kind} last=never"
+    end
+  end
+when "secrets-import"
+  path = ARGV[0] or abort "usage: bin/asof secrets-import PATH"
+  exec RbConfig.ruby, File.expand_path("import-fred-key", __dir__), path
 when "verify"
   exec RbConfig.ruby, File.expand_path("lightyear", __dir__), "ledger", "verify", "--json", *ARGV
 when "-h", "--help", nil
   puts <<~USAGE
     bin/asof ingest-fixture edgar|fred PATH [--name SERIES]
     bin/asof snapshot
-    bin/asof ingest-live   # requires INGEST_LIVE=1, CONTACT_EMAIL, FRED_API_KEY
-    bin/asof verify        # lightyear ledger verify --json
+    bin/asof ingest-live     # INGEST_LIVE=1 + FRED key in credentials store
+    bin/asof fetches [N]
+    bin/asof ingest-status
+    bin/asof verify          # lightyear ledger verify --json
   USAGE
 else
   abort "unknown command #{cmd}"

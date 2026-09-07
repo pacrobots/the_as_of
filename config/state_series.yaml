@@ -5,13 +5,19 @@ series:
     native_id: UNRATE
     unit: percent
     vintage: official
+    citation: "Source: U.S. Bureau of Labor Statistics via FRED"
+    copyright: public_domain_citation_requested
   - name: fred.cpi_u
     source: fred
     native_id: CPIAUCSL
     unit: index
     vintage: official
+    citation: "Source: U.S. Bureau of Labor Statistics via FRED"
+    copyright: public_domain_citation_requested
   - name: fed.funds_upper
     source: fred
     native_id: DFEDTARU
     unit: percent
     vintage: official
+    citation: "Source: Board of Governors of the Federal Reserve System via FRED"
+    copyright: public_domain_citation_requested

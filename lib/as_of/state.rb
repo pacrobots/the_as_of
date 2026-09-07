@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "catalog"
+require_relative "notices"
 
 module AsOf
   # Assembles StateSnapshot and Diff from SeriesSnapshot history.
@@ -18,7 +19,8 @@ module AsOf
         "as_of_data" => data_at && iso(data_at),
         "series" => facts,
         "next_dates" => [],
-        "deltas" => since ? series_diff_items(since: since, at: at) : []
+        "deltas" => since ? series_diff_items(since: since, at: at) : [],
+        "notices" => AsOf::Notices.public_payload
       }
     end
 

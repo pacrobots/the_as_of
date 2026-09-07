@@ -2,13 +2,15 @@
   "openapi": "3.1.0",
   "info": {
     "title": "As-Of",
-    "description": "The agents' ledger of public record. Dated, hashed, diffable.",
+    "description": "The agents' ledger of public record. Dated, hashed, diffable. This product uses the FRED® API but is not endorsed or certified by the Federal Reserve Bank of St. Louis.",
     "version": "0.1.0"
   },
   "paths": {
     "/v1/health": { "get": { "responses": { "200": { "description": "ok" } } } },
     "/v1/openapi.json": { "get": { "responses": { "200": { "description": "this document" } } } },
     "/v1/prices": { "get": { "responses": { "200": { "description": "S5" } } } },
+    "/v1/notices": { "get": { "responses": { "200": { "description": "FRED and other required notices" } } } },
+    "/v1/catalog": { "get": { "responses": { "200": { "description": "series names only" } } } },
     "/v1/state": { "get": { "responses": { "200": { "description": "S3" } } } },
     "/v1/state.md": { "get": { "responses": { "200": { "description": "S9" } } } },
     "/v1/diff": { "get": { "responses": { "200": { "description": "S3" } } } },

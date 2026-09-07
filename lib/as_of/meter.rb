@@ -5,7 +5,8 @@ require_relative "prices"
 module AsOf
   # CreditKey prepaid meter. Deducts after 2xx only. Not Budget, not Allowance.
   module Meter
-    FREE = [%r{\A/v1/health\z}, %r{\A/v1/openapi\.json\z}, %r{\A/v1/prices\z}, %r{\A/v1/catalog\z}].freeze
+    FREE = [%r{\A/v1/health\z}, %r{\A/v1/openapi\.json\z}, %r{\A/v1/prices\z},
+            %r{\A/v1/catalog\z}, %r{\A/v1/notices\z}].freeze
 
     module_function
 

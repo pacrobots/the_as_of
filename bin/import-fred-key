@@ -1,0 +1,31 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Reads a one-line key file, stores it in the Realm credentials store, deletes
+# the file. Never prints the key.
+path = ARGV[0] or abort "usage: bin/import-fred-key PATH"
+abort "missing #{path}" unless File.exist?(path)
+
+require_relative "../config/lightyear"
+
+key = File.read(path).strip
+abort "empty key file" if key.empty?
+abort "key file looks like a path, not a token" if key.include?("/") && key.length > 64
+
+realm = Lightyear.realm or abort "no Realm — bin/lightyear db:prepare first"
+operator = Lightyear::Trust::Principal.find_or_create_by!(realm: realm, name: ENV["USER"] || "operator")
+%w[store rotate].each do |act|
+  verb = "realm/credentials/#{act}"
+  has = Lightyear::Trust::Writ.held_by(operator.did).any? { |w| w.verified? && w.allows?(verb, on: "*") }
+  realm.grant(verb, on: "*", for: :forever, to: operator.did) unless has
+end
+
+begin
+  realm.credentials.store(:fred_api_key, key, by: operator.did, sensitive: true)
+rescue Lightyear::Trust::Credentials::Forbidden
+  abort "operator holds no credentials/store Writ"
+end
+
+File.delete(path)
+warn "stored fred_api_key (sensitive); plaintext file removed"
+warn "names: #{realm.credentials.keys.join(', ')}"

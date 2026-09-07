@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "notices"
+
 module AsOf
   # Render markdown from the JSON object only. Zero extra facts.
   module Markdown
@@ -18,6 +20,15 @@ module AsOf
       Array(payload["next_dates"]).each do |d|
         lines << "- #{d['date']}: #{d['why']} source #{d['source_id']}"
       end
+      Array(payload["series"]).each do |f|
+        next if f["citation"].to_s.empty?
+
+        lines << ""
+        lines << f["citation"]
+        break
+      end
+      lines << ""
+      Notices.footer_lines.each { |n| lines << "_#{n}_" }
       lines.join("\n") + "\n"
     end
 

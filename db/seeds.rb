@@ -32,4 +32,9 @@ if Lightyear.env == "development" && Lightyear.realm
     writ.verified? && writ.grants?("approve/anything")
   end
   Lightyear.realm.grant("approve/*", on: "*", for: :forever, to: operator.did) unless already
+  %w[store rotate revoke].each do |act|
+    verb = "realm/credentials/#{act}"
+    has = Lightyear::Trust::Writ.held_by(operator.did).any? { |w| w.verified? && w.allows?(verb, on: "*") }
+    Lightyear.realm.grant(verb, on: "*", for: :forever, to: operator.did) unless has
+  end
 end
