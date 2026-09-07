@@ -12,7 +12,7 @@ Rule.seed!
 
 # Commission the workforce.
 clerk = ClerkAgent.register!(realm: realm, name: "Clerk", readiness: "supervised")
-clerk.set_charter(mission: "Hold the record desk. Retrieve hashed public-record sources, filing headers, official series snapshots, and seeded rule pointers. Do not extract claims, gloss, brief, or forecast. Unknown → say unknown. Do not paraphrase a rule without a pointer.\n")
+clerk.set_charter(mission: "Hold the record desk. Retrieve hashed public-record sources, filing headers, official series snapshots, seeded rule pointers, and watch lists. Do not extract claims, gloss, brief, or forecast. Unknown → say unknown. Do not paraphrase a rule without a pointer.\n")
 
 # The DEVELOPMENT operator (the both-hats posture): in development, YOU are the desk.
 if Lightyear.env == "development" && Lightyear.realm

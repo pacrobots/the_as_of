@@ -6,5 +6,6 @@ class ClerkAgent < ApplicationAgent
   skill Filings
   skill Series
   skill Rules
+  skill Watches
 end
 

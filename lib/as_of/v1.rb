@@ -38,6 +38,10 @@ module AsOf
         return state(req)
       when ["GET", "/v1/diff"]
         return diff(req)
+      when ["GET", "/v1/watches"]
+        return list_watches(req)
+      when ["POST", "/v1/watches"]
+        return create_watch(req)
       else
         if req.get? && (m = req.path.match(%r{\A/v1/source/(.+)\z}))
           source = Source.find_by(content_hash: m[1])
@@ -51,6 +55,9 @@ module AsOf
 
           data_at = rule.source&.published_at || rule.source&.retrieved_at || rule.updated_at
           return json(200, rule.as_object.merge("as_of" => now, "as_of_data" => iso(data_at)))
+        end
+        if req.delete? && (m = req.path.match(%r{\A/v1/watches/(.+)\z}))
+          return delete_watch(req, m[1])
         end
         if req.get? && (m = req.path.match(%r{\A/v1/filing/(.+)\z}))
           filing = Filing.find_by(accession: m[1])
@@ -76,9 +83,64 @@ module AsOf
       since = parse_time(req.params["since"])
       return json(422, { "error" => { "code" => "bad_request", "message" => "since is required" } }) unless since
 
-      json(200, AsOf::State.diff(since: since, at: parse_time(req.params["at"])))
+      watch = nil
+      if (wid = req.params["watch_id"])
+        watch = Watch.find_by(id: wid)
+        return json(404, { "error" => { "code" => "not_found", "message" => "not found" } }) unless watch
+
+        owner = req.env["as_of.customer"]
+        return json(404, { "error" => { "code" => "not_found", "message" => "not found" } }) if owner && watch.customer_id != owner.id
+      end
+      types = req.params["types"]&.split(",")
+      entities = parse_json_param(req.params["entities"])
+      json(200, AsOf::State.diff(since: since, at: parse_time(req.params["at"]),
+                                 watch: watch, types: types, entities: entities))
     rescue AsOf::State::LowData
       json(503, { "error" => { "code" => "low_data", "message" => "no series history at that time" } })
+    end
+
+    def list_watches(req)
+      json(200, { "as_of" => now, "as_of_data" => nil, "watches" => current_customer(req).watches.order(:id).map(&:as_watch) })
+    end
+
+    def create_watch(req)
+      payload = parse_json_body(req)
+      entities = payload["entities"]
+      return json(422, { "error" => { "code" => "bad_request", "message" => "entities required" } }) if Array(entities).empty?
+
+      watch = current_customer(req).watches.create!(entities: entities)
+      json(200, watch.as_watch)
+    end
+
+    def delete_watch(req, id)
+      watch = current_customer(req).watches.find_by(id: id)
+      return json(404, { "error" => { "code" => "not_found", "message" => "not found" } }) unless watch
+
+      watch.destroy!
+      json(200, { "ok" => true, "id" => id })
+    end
+
+    def current_customer(req)
+      req.env["as_of.customer"] || (AsOf.dev_free? && Customer.find_or_create_by!(name: "dev"))
+    end
+
+    def parse_json_body(req)
+      raw = req.body.read
+      req.body.rewind if req.body.respond_to?(:rewind)
+      return {} if raw.to_s.empty?
+
+      JSON.parse(raw)
+    rescue JSON::ParserError
+      {}
+    end
+
+    def parse_json_param(value)
+      return nil if value.to_s.empty?
+      return value if value.is_a?(Array)
+
+      JSON.parse(value)
+    rescue JSON::ParserError
+      nil
     end
 
     def parse_time(value)

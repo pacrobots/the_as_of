@@ -18,14 +18,28 @@ module AsOf
         "as_of_data" => data_at && iso(data_at),
         "series" => facts,
         "next_dates" => [],
-        "deltas" => since ? diff_items(since: since, at: at) : []
+        "deltas" => since ? series_diff_items(since: since, at: at) : []
       }
     end
 
-    def diff(since:, at: nil)
+    def diff(since:, at: nil, watch: nil, types: nil, entities: nil)
       raise ArgumentError, "since required" if since.nil?
 
-      items = diff_items(since: since, at: at)
+      items = series_diff_items(since: since, at: at) + filing_diff_items(since: since, at: at)
+      items = items.select { |i| watch.covers?(i) } if watch
+      if entities
+        wanted = Array(entities)
+        items = items.select { |i|
+          wanted.any? { |raw|
+            r = raw.respond_to?(:stringify_keys) ? raw.stringify_keys : raw
+            r["type"].to_s == i.dig("entity", "type").to_s && r["id"].to_s == i.dig("entity", "id").to_s
+          }
+        }
+      end
+      if types
+        wanted = Array(types).map(&:to_s)
+        items = items.select { |i| wanted.include?(i.dig("entity", "type").to_s) }
+      end
       { "since" => iso(since), "as_of" => clock, "items" => items }
     end
 
@@ -42,7 +56,7 @@ module AsOf
       rel.order(observed_at: :desc).first
     end
 
-    def diff_items(since:, at: nil)
+    def series_diff_items(since:, at: nil)
       before = facts_at(since).to_h { |f| [f["name"], f] }
       after = facts_at(at).to_h { |f| [f["name"], f] }
       names = (before.keys + after.keys).uniq.sort
@@ -55,6 +69,21 @@ module AsOf
         elsif b && a && b["value"] != a["value"]
           item("replace", name, b, a)
         end
+      }
+    end
+
+    def filing_diff_items(since:, at: nil)
+      rel = Filing.where("filed_at > ?", since)
+      rel = rel.where("filed_at <= ?", at) if at
+      rel.order(:filed_at).map { |f|
+        {
+          "op" => "add",
+          "path" => "/filing/#{f.accession}",
+          "entity" => { "type" => "cik", "id" => f.cik, "name" => f.company_name },
+          "before" => {},
+          "after" => { "accession" => f.accession, "form" => f.form },
+          "source_id" => f.source.content_hash
+        }
       }
     end
 

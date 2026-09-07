@@ -7,6 +7,7 @@ class Customer < ApplicationRecord
   has_one :credit, dependent: :destroy
   has_many :sku_entitlements, dependent: :destroy
   has_many :usage_events, dependent: :destroy
+  has_many :watches, dependent: :destroy
 
   def wallet!
     credit || create_credit!(balance_cents: 0)

@@ -77,6 +77,11 @@ domain:
         - { name: route, type: string, required: true }
         - { name: status, type: integer, required: true }
         - { name: price_cents, type: integer, required: true }
+    - name: Watch
+      unique: []
+      belongs_to: [customer]
+      fields:
+        - { name: entities, type: json, required: true }
 
 connections:
   - name: edgar
@@ -107,6 +112,10 @@ skills:
     provides:
       - { verb: "rule/browse", reads: Rule }
       - { verb: "rule/describe", reads: Rule }
+  - name: watches
+    provides:
+      - { verb: "watch/browse", reads: Watch }
+      - { verb: "watch/describe", reads: Watch }
 
 agents:
   - name: Clerk
@@ -115,7 +124,7 @@ agents:
     charter:
       mission: >
         Hold the record desk. Retrieve hashed public-record sources, filing headers,
-        official series snapshots, and seeded rule pointers. Do not extract claims,
-        gloss, brief, or forecast. Unknown → say unknown. Do not paraphrase a rule
-        without a pointer.
-    skills: [sources, filings, series, rules]
+        official series snapshots, seeded rule pointers, and watch lists.
+        Do not extract claims, gloss, brief, or forecast. Unknown → say unknown.
+        Do not paraphrase a rule without a pointer.
+    skills: [sources, filings, series, rules, watches]
