@@ -1,0 +1,3 @@
+# EDGAR whitelist. IngestEdgarJob live path only fetches these CIKs.
+issuers:
+  - { cik: "0001045810", ticker: NVDA, name: NVIDIA CORP }

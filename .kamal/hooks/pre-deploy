@@ -30,6 +30,10 @@ if deploy
   # by the template's own documentation.
   delivers_master = secrets.lines.any? { |l| l.match?(/^\s*LIGHTYEAR_MASTER_KEY=/) }
   failures << ".kamal/secrets must deliver LIGHTYEAR_MASTER_KEY (the credentials store refuses to boot without it)" unless delivers_master
+
+  env = deploy.dig("env", "clear").to_h
+  failures << "env.clear.CONTACT_EMAIL is required (SEC User-Agent)" if env["CONTACT_EMAIL"].to_s.strip.empty?
+  failures << "proxy.host should be theasof.com (aliases redirect later)" if host != "theasof.com" && host != "app.example.com"
 end
 
 if failures.any?
@@ -37,4 +41,5 @@ if failures.any?
   failures.each { |f| warn "  ✗ #{f}" }
   exit 1
 end
-puts "[lightyear pre-deploy] ceremony green — identity, TLS, and secrets agree"
+puts "[lightyear pre-deploy] ceremony green — identity, TLS, secrets, CONTACT_EMAIL agree"
+puts "[lightyear pre-deploy] post-boot: bin/lightyear ledger verify (also in docker-entrypoint)"

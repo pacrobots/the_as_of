@@ -1,0 +1,9 @@
+# Federal Register agency filter (Phase A). Live FR poll is not wired yet.
+agencies:
+  - SEC
+  - IRS
+  - Treasury
+  - Federal Reserve System
+  - CFTC
+  - FTC
+  - DOE

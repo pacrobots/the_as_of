@@ -1,0 +1,16 @@
+# Operator beats. The clock is `bin/lightyear jobs --clock` (one per estate).
+# Cadences must NOT LLM-turn on unchanged hashes: Ingest*Job stores raw+hash
+# first; extract skips when facts already exist for that source.
+beats:
+  edgar:
+    job: IngestEdgarJob
+    whitelist: config/watchlists.yaml
+    note: extract only on new source hash
+  fred:
+    job: IngestFredJob
+    catalog: config/state_series.yaml
+    note: vintage=official is a Judge, not a vibe
+  federal_register:
+    job: null
+    agencies: config/agencies.yaml
+    note: Phase A required; live poll not wired. Seeded rules are pointers.

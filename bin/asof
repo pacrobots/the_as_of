@@ -22,12 +22,17 @@ when "snapshot"
   puts AsOf::Markdown.state(payload)
 when "ingest-live"
   abort "refusing: set INGEST_LIVE=1" unless ENV["INGEST_LIVE"] == "1"
-  abort "ingest-live needs SEC_USER_AGENT / FRED_API_KEY — not wired to HTTP yet"
+  AsOf.sec_user_agent
+  abort "FRED_API_KEY required" if ENV["FRED_API_KEY"].to_s.empty?
+  abort "ingest-live HTTP fetch not wired; jobs should use Connections + whitelist"
+when "verify"
+  exec RbConfig.ruby, File.expand_path("lightyear", __dir__), "ledger", "verify", "--json", *ARGV
 when "-h", "--help", nil
   puts <<~USAGE
     bin/asof ingest-fixture edgar|fred PATH [--name SERIES]
     bin/asof snapshot
-    bin/asof ingest-live   # requires INGEST_LIVE=1
+    bin/asof ingest-live   # requires INGEST_LIVE=1, CONTACT_EMAIL, FRED_API_KEY
+    bin/asof verify        # lightyear ledger verify --json
   USAGE
 else
   abort "unknown command #{cmd}"

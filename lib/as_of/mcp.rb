@@ -4,6 +4,7 @@ require "json"
 require "rack"
 require_relative "state"
 require_relative "meter"
+require_relative "rate_limit"
 
 module AsOf
   # JSON-RPC MCP edge wrapping the same domain reads as /v1. Menu is the tool
@@ -26,6 +27,9 @@ module AsOf
 
     def call(env)
       req = Rack::Request.new(env)
+      if (limited = AsOf::RateLimit.check!(req))
+        return limited
+      end
       return json_rpc(nil, error: { code: -32600, message: "POST JSON-RPC" }) unless req.post?
 
       if (denied = AsOf::Meter.before(mapped_req(req)))

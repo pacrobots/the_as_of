@@ -21,7 +21,7 @@ servers:
 
 proxy:
   ssl: true                    # did:web REQUIRES https — not optional here
-  host: app.example.com        # <- YOUR DOMAIN. This IS your Realm's identity:
+  host: theasof.com            # Realm identity; must match production realm_fqdn.
                                # it must agree with realm_fqdn in
                                # config/environments/production.rb (the
                                # pre-deploy hook checks the agreement —
@@ -39,8 +39,16 @@ registry:
 env:
   clear:
     LIGHTYEAR_ENV: production
+    PUBLIC_BASE_URL: https://theasof.com
+    CONTACT_EMAIL: ops@theasof.com   # <- your mailbox; SEC User-Agent
+    RATE_LIMIT: "1"
+    RATE_LIMIT_PER_MIN: "120"
+    DEV_FREE: "0"
+    X402_ENABLED: "false"
   secret:
     - LIGHTYEAR_MASTER_KEY     # the credentials store refuses to boot without it
+    - FRED_API_KEY
+    - LLM_API_KEY
 
 builder:
   arch: amd64
@@ -49,6 +57,7 @@ builder:
 
 aliases:
   doctor: app exec --reuse "./bin/lightyear doctor"   # the organs, on demand
+  ledger: app exec --reuse "./bin/lightyear ledger verify"
   console: app exec --interactive --reuse "./bin/lightyear console"
   logs: app logs --follow
 

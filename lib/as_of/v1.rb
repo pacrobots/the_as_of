@@ -8,6 +8,7 @@ require_relative "state"
 require_relative "meter"
 require_relative "prices"
 require_relative "markdown"
+require_relative "rate_limit"
 require_relative "../../app/msv/pages/state_page"
 
 module AsOf
@@ -20,6 +21,9 @@ module AsOf
 
     def call(env)
       req = Rack::Request.new(env)
+      if (limited = AsOf::RateLimit.check!(req))
+        return limited
+      end
       if (denied = AsOf::Meter.before(req))
         return denied
       end

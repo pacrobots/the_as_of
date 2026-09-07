@@ -14,7 +14,7 @@ module AsOf
     def edgar(realm)
       upsert(realm, "edgar", :http, {
         "base_url" => "https://data.sec.gov",
-        "user_agent" => ENV["SEC_USER_AGENT"],
+        "user_agent" => (ENV["SEC_USER_AGENT"].to_s.strip.empty? ? (AsOf.contact_email.empty? ? nil : AsOf.sec_user_agent) : ENV["SEC_USER_AGENT"]),
         "endpoints" => {
           "edgar/fetch" => {
             "method" => "get",
