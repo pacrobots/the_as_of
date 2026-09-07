@@ -2,7 +2,7 @@
 # DNS: asof.pacrobots.com A → 5.78.95.164 (skyvim). theasof.com does not
 # currently point here — Let's Encrypt needs the name to resolve to this box.
 service: as_of
-image: walkaboutlanguages/as_of
+image: as_of
 
 servers:
   web:
@@ -26,11 +26,9 @@ proxy:
 volumes:
   - "as_of_storage:/app/storage"
 
+# Images live in a localhost registry on Skyvim (GHCR token lacks write:packages).
 registry:
-  server: ghcr.io
-  username: walkaboutlanguages
-  password:
-    - KAMAL_REGISTRY_PASSWORD
+  server: localhost:5555
 
 env:
   clear:
