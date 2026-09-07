@@ -25,13 +25,17 @@ INGEST_LIVE=1 bin/asof ingest-live   # refused unless the flag is set
 
 ## Operator (not a product surface)
 
-One clock: `bin/lightyear jobs --clock`. Beats are in `config/cadence.yml`.
+One clock: `bin/lightyear jobs --clock`. Beats are in `config/cadence.yml`. The clock enqueues **Jobs** (no LLM). Agent Cadences are a different primitive and must not drive ingest.
+
+Public-gate week is **FRED-only**. EDGAR live fetch and FR poll are not wired.
 
 | Beat | Config | Rule |
 |---|---|---|
-| EDGAR | `config/watchlists.yaml` | Job stores raw+hash first. Extract only on a **new** source hash. No LLM on unchanged bytes. |
-| FRED | `config/state_series.yaml` | Same. `vintage=official` is a Judge. |
+| EDGAR | `config/watchlists.yaml` | Fixture path only. Extract only on a **new** source hash. No LLM on unchanged bytes. |
+| FRED | `config/state_series.yaml` | Live every 6h in production when the API key is present. Same hash → `kept`. `vintage=official` is a Judge. |
 | Federal Register | `config/agencies.yaml` | Phase A required; live poll not wired. Seeded `/v1/rule` is a pointer. |
+
+Fail-loud: `GET /v1/health` stays **200** so Kamal does not bounce the box. `GET /v1/ingest` is open (no Basic) and returns **503** when any catalog FRED series is missing or older than 8h. Body of both includes per-series last hash/outcome. `bin/asof ingest-status` / `bin/asof fetches` are the operator pull.
 
 `CONTACT_EMAIL` is required in production (SEC User-Agent `AsOf/0.1 (+email)`). Set `SEC_USER_AGENT` to override.
 
@@ -45,10 +49,10 @@ FRED: this product uses the FRED® API but is not endorsed or certified by the F
 
 ## Skyvim staging
 
-Host: `asof.pacrobots.com` (Kamal on `skyvim`, user `bkkriese`). HTTP Basic password in `.kamal/site_password` — any IP, no allowlist. `/v1/health` stays open for the proxy.
+Host: `theasof.com` (Kamal on `skyvim`, user `bkkriese`). HTTP Basic password in `.kamal/site_password` — any IP, no allowlist. `/v1/health` and `/v1/ingest` stay open for the proxy / week watch.
 
 ```
 kamal deploy
 ```
 
-DNS: `asof.pacrobots.com` A → `5.78.95.164`. `theasof.com` currently does not point at Skyvim.
+DNS: `theasof.com` A → `5.78.95.164`.

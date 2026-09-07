@@ -17,6 +17,9 @@ class HardenTest < Lightyear::Support::TestCase
     beats = YAML.safe_load_file("config/cadence.yml").fetch("beats")
     %w[edgar fred federal_register].each { |k| assert beats[k], k }
     assert_match(/new source hash/, beats["edgar"]["note"])
+    assert_equal true, beats["fred"]["live"]
+    assert_equal false, beats["edgar"]["live"]
+    assert beats["fred"]["every"]
     assert File.exist?("config/watchlists.yaml")
     assert File.exist?("config/agencies.yaml")
   end

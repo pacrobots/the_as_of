@@ -38,13 +38,17 @@ when "fetches"
           row.outcome, row.content_hash, row.error_message].compact.join(" ")
   end
 when "ingest-status"
-  %w[edgar fred].each do |kind|
+  require "as_of/ingest_status"
+  payload = AsOf::IngestStatus.payload
+  puts "ok=#{payload['ok']} scope=#{payload['scope']} every=#{payload['every']} gate_started=#{payload['gate_started_at'] || 'never'} gate_due=#{payload['gate_due_at'] || '-'}"
+  payload["series"].each do |row|
+    puts [row["name"], row["native_id"], row["ok"] ? "fresh" : "STALE",
+          row["last_ok_at"] || "never", row["last_outcome"], row["content_hash"],
+          row["last_error"]].compact.join(" ")
+  end
+  %w[edgar].each do |kind|
     row = FetchLog.last_ok(kind)
-    if row
-      puts "#{kind} last=#{row.created_at.utc.iso8601} outcome=#{row.outcome} hash=#{row.content_hash}"
-    else
-      puts "#{kind} last=never"
-    end
+    puts row ? "#{kind} last=#{row.created_at.utc.iso8601} outcome=#{row.outcome}" : "#{kind} last=never (out of week scope)"
   end
 when "secrets-import"
   path = ARGV[0] or abort "usage: bin/asof secrets-import PATH"

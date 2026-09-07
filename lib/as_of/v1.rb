@@ -10,6 +10,7 @@ require_relative "prices"
 require_relative "markdown"
 require_relative "rate_limit"
 require_relative "notices"
+require_relative "ingest_status"
 require_relative "../../app/msv/pages/state_page"
 
 module AsOf
@@ -36,8 +37,14 @@ module AsOf
     def dispatch(req)
       case [req.request_method, req.path]
       when ["GET", "/v1/health"]
-        json(200, { "ok" => true, "as_of" => now, "as_of_data" => nil, "dev_free" => AsOf.dev_free?,
-                    "fred_disclaimer" => AsOf::Notices::FRED_DISCLAIMER })
+        ingest = AsOf::IngestStatus.payload
+        json(200, { "ok" => true, "as_of" => now, "as_of_data" => ingest["as_of_data"],
+                    "dev_free" => AsOf.dev_free?,
+                    "fred_disclaimer" => AsOf::Notices::FRED_DISCLAIMER,
+                    "ingest" => ingest })
+      when ["GET", "/v1/ingest"]
+        ingest = AsOf::IngestStatus.payload
+        json(ingest["ok"] ? 200 : 503, ingest.merge("as_of" => now))
       when ["GET", "/v1/openapi.json"]
         json(200, JSON.parse(File.read(OPENAPI_PATH)))
       when ["GET", "/v1/prices"]

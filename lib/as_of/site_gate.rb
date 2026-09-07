@@ -14,7 +14,7 @@ module AsOf
     def enabled? = !password.empty?
 
     def skip?(path)
-      path == "/v1/health" || path.start_with?("/.well-known")
+      path == "/v1/health" || path == "/v1/ingest" || path.start_with?("/.well-known")
     end
 
     def challenge(req)

@@ -11,14 +11,19 @@ class FetchLog < ApplicationRecord
     create!(attrs)
   end
 
-  def self.last_ok(kind = nil)
+  def self.last_ok(kind = nil, native_id: nil)
     rel = where(outcome: %w[new kept])
     rel = rel.where(source_kind: kind) if kind
+    rel = rel.where(native_id: native_id) if native_id
     rel.order(id: :desc).first
   end
 
-  def self.stale?(kind:, max_age:)
-    row = last_ok(kind)
+  def self.last_for(kind:, native_id:)
+    where(source_kind: kind, native_id: native_id).order(id: :desc).first
+  end
+
+  def self.stale?(kind:, max_age:, native_id: nil)
+    row = last_ok(kind, native_id: native_id)
     return true unless row
 
     row.created_at < max_age.ago

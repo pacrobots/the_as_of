@@ -14,6 +14,18 @@ class V1Test < Lightyear::Support::TestCase
     assert_equal true, payload["ok"]
     assert payload["as_of"]
     assert_equal true, payload["dev_free"]
+    assert_equal false, payload.dig("ingest", "ok")
+    assert_equal "fred_only", payload.dig("ingest", "scope")
+  end
+
+  test "GET /v1/ingest is 503 until a fresh FRED fetch exists" do
+    status, _h, body = Lightyear::Server.app.call(
+      Rack::MockRequest.env_for("https://as-of.test/v1/ingest"))
+    assert_equal 503, status
+    payload = JSON.parse(body.join)
+    assert_equal false, payload["ok"]
+    assert payload["series"].any?
+    assert payload["series"].all? { |row| row["stale"] }
   end
 
   test "GET /v1/openapi.json lists MVP routes including explain and watches" do
@@ -25,6 +37,7 @@ class V1Test < Lightyear::Support::TestCase
     paths = spec["paths"].keys
     assert_includes paths, "/v1/explain/{target_type}/{target_id}"
     assert_includes paths, "/v1/watches"
+    assert_includes paths, "/v1/ingest"
   end
 
   test "unknown /v1 path is 404 with the product error shape" do

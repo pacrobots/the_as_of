@@ -509,7 +509,7 @@ Ship publicly when **all** are true:
 1. Agent with a consumer, meter, or `lym_` key can call state/diff/filing/brief_query/explain (MCP or `/v1`) and get hashed sources.
 2. Operator can set a watch and pull a diff without a human writing copy.
 3. Reader can open `/v1/state.md` (authenticated) or StatePage and tap explain on one rule or claim.
-4. Ingest Jobs for Phase A run unattended for 7 days in staging with no silent hash overwrite.
+4. Ingest Jobs for Phase A run unattended for 7 days in staging with no silent hash overwrite. Staging week is FRED-only (`GET /v1/ingest` 503 when stale); live EDGAR/FR wait.
 5. Tests 1–12 green.
 6. `usage_events` exist and are not exposed by any route/tool.
 7. No Opinion, no ungrounded numbers in fixtures or live smoke.

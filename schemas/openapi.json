@@ -6,7 +6,8 @@
     "version": "0.1.0"
   },
   "paths": {
-    "/v1/health": { "get": { "responses": { "200": { "description": "ok" } } } },
+    "/v1/health": { "get": { "responses": { "200": { "description": "process liveness (Kamal). ingest is in the JSON body, never the status." } } } },
+    "/v1/ingest": { "get": { "responses": { "200": { "description": "FRED ingest fresh" }, "503": { "description": "FRED ingest missing or stale" } } } },
     "/v1/openapi.json": { "get": { "responses": { "200": { "description": "this document" } } } },
     "/v1/prices": { "get": { "responses": { "200": { "description": "S5" } } } },
     "/v1/notices": { "get": { "responses": { "200": { "description": "FRED and other required notices" } } } },

@@ -31,4 +31,9 @@ class SiteGateTest < Lightyear::Support::TestCase
     status, = call("/v1/health")
     assert_equal 200, status
   end
+
+  test "ingest probe stays open so the week watch needs no password" do
+    status, = call("/v1/ingest")
+    assert_includes [200, 503], status
+  end
 end

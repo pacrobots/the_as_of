@@ -20,7 +20,8 @@ module AsOf
     def per_min = ENV.fetch("RATE_LIMIT_PER_MIN", "120").to_i
 
     def skip?(path)
-      path == "/v1/health" || path == "/v1/catalog" || path.start_with?("/.well-known")
+      path == "/v1/health" || path == "/v1/ingest" || path == "/v1/catalog" ||
+        path.start_with?("/.well-known")
     end
 
     def check!(req)

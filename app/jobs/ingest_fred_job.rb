@@ -75,9 +75,10 @@ class IngestFredJob < ApplicationJob
   end
 
   def receipt(spec, raw, payload)
+    # retrieved_at lives on Source, not in the blob — a stable receipt hashes
+    # the same when FRED bytes are unchanged (kept, not a silent new row).
     JSON.generate(
       "native_id" => spec["native_id"],
-      "retrieved_at" => Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
       "observation_count" => Array(payload["observations"]).size,
       "body_sha256" => AsOf::BlobStore.hash_of(raw),
       "citation" => spec["citation"]
