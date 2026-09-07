@@ -7,6 +7,8 @@ require_relative "../as_of"
 require_relative "state"
 require_relative "meter"
 require_relative "prices"
+require_relative "markdown"
+require_relative "../../app/msv/pages/state_page"
 
 module AsOf
   # Thin JSON catalog (PRD §5.1). Prefix-mounted on Server.app at `/v1`.
@@ -34,8 +36,12 @@ module AsOf
         json(200, JSON.parse(File.read(OPENAPI_PATH)))
       when ["GET", "/v1/prices"]
         json(200, AsOf::Prices.as_json)
+      when ["GET", "/v1/catalog"]
+        json(200, StatePage.teaser)
       when ["GET", "/v1/state"]
         return state(req)
+      when ["GET", "/v1/state.md"]
+        return state_md(req)
       when ["GET", "/v1/diff"]
         return diff(req)
       when ["GET", "/v1/watches"]
@@ -65,10 +71,14 @@ module AsOf
           return delete_watch(req, m[1])
         end
         if req.get? && (m = req.path.match(%r{\A/v1/brief/(.+)\z}))
-          brief = Brief.find_by(id: m[1])
+          id = m[1]
+          as_md = id.end_with?(".md")
+          id = id.delete_suffix(".md")
+          brief = Brief.find_by(id: id)
           return json(404, { "error" => { "code" => "not_found", "message" => "not found" } }) unless brief
 
-          return json(200, brief.as_object.merge("as_of_data" => iso(brief.source&.published_at || brief.created_at)))
+          payload = brief.as_object.merge("as_of_data" => iso(brief.source&.published_at || brief.created_at))
+          return as_md ? markdown(AsOf::Markdown.brief(payload)) : json(200, payload)
         end
         if req.get? && (m = req.path.match(%r{\A/v1/filing/(.+)\z}))
           filing = Filing.find_by(accession: m[1])
@@ -84,10 +94,23 @@ module AsOf
     private
 
     def state(req)
-      payload = AsOf::State.snapshot(at: parse_time(req.params["at"]), since: parse_time(req.params["since"]))
-      json(200, payload)
+      json(200, snapshot(req))
     rescue AsOf::State::LowData
       json(503, { "error" => { "code" => "low_data", "message" => "no series history at that time" } })
+    end
+
+    def state_md(req)
+      markdown(AsOf::Markdown.state(snapshot(req)))
+    rescue AsOf::State::LowData
+      json(503, { "error" => { "code" => "low_data", "message" => "no series history at that time" } })
+    end
+
+    def snapshot(req)
+      AsOf::State.snapshot(at: parse_time(req.params["at"]), since: parse_time(req.params["since"]))
+    end
+
+    def markdown(text)
+      [200, { "content-type" => "text/markdown; charset=utf-8" }, [text]]
     end
 
     def diff(req)

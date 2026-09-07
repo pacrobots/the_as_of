@@ -13,4 +13,11 @@ bin/lightyear test
 bin/lightyear server
 ```
 
-`GET /v1/health` and `GET /v1/openapi.json` are mounted on `Lightyear::Server.app` (same stack as `lightyear server`). Lightyear is pinned to `pacificrobots/lightyear` until [#55](https://github.com/pacificrobots/lightyear/pull/55) merges; then `branch: "main"`.
+`GET /v1/health`, `/v1/catalog` (series names only), `/v1/state.md`, and `/mcp` (JSON-RPC tools wrapping the same reads) are on `Lightyear::Server.app`.
+
+```
+bin/asof ingest-fixture edgar test/fixtures/edgar/0001045810-24-000123.txt
+bin/asof ingest-fixture fred test/fixtures/fred/unrate.json --name fred.unrate
+bin/asof snapshot
+INGEST_LIVE=1 bin/asof ingest-live   # refused unless the flag is set
+```

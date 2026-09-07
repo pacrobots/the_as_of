@@ -1,0 +1,34 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require_relative "../config/lightyear"
+
+cmd = ARGV.shift
+case cmd
+when "ingest-fixture"
+  kind, path = ARGV[0], ARGV[1]
+  abort "usage: bin/asof ingest-fixture edgar|fred PATH [--name SERIES]" unless kind && path
+  name = ARGV.include?("--name") ? ARGV[ARGV.index("--name") + 1] : "fred.unrate"
+  case kind
+  when "edgar" then IngestEdgarJob.perform_now(path: path)
+  when "fred" then IngestFredJob.perform_now(path: path, name: name)
+  else abort "unknown kind #{kind}"
+  end
+  puts "ok"
+when "snapshot"
+  require "as_of/state"
+  require "as_of/markdown"
+  payload = AsOf::State.snapshot
+  puts AsOf::Markdown.state(payload)
+when "ingest-live"
+  abort "refusing: set INGEST_LIVE=1" unless ENV["INGEST_LIVE"] == "1"
+  abort "ingest-live needs SEC_USER_AGENT / FRED_API_KEY — not wired to HTTP yet"
+when "-h", "--help", nil
+  puts <<~USAGE
+    bin/asof ingest-fixture edgar|fred PATH [--name SERIES]
+    bin/asof snapshot
+    bin/asof ingest-live   # requires INGEST_LIVE=1
+  USAGE
+else
+  abort "unknown command #{cmd}"
+end

@@ -29,6 +29,7 @@ module AsOf
     end
 
     def usd_for(path, method: "GET")
+      path = path.sub(/\.md\z/, "")
       row = catalog.fetch("routes").find { |r| match_path?(r["path"] || r[:path], path, method) }
       return nil unless row
 

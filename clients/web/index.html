@@ -10,8 +10,18 @@
   .card { background: #161c24; border: 1px solid #26313f; border-radius: 12px; padding: 1rem; margin: .6rem 0; }
   .goal { color: #8593a3; font-size: .8em; text-transform: uppercase; letter-spacing: .06em; }
 </style>
-<h1>as_of</h1>
+<h1>As-Of</h1>
+<p>The agents' ledger of public record. Dated, hashed, diffable.</p>
+<p>Series names only until you present a key:</p>
+<ul id="series-names"></ul>
+<p>GET <code>/v1/state.md</code> with <code>Authorization: Bearer tao_…</code> for values. Explain: <code>/v1/explain/rule/usc:26:174</code>.</p>
 <div id="surface">Sign in at <a href="/auth/login">/auth/login</a>, then reload.</div>
+<script>
+  fetch("/v1/catalog").then(r => r.json()).then(t => {
+    const ul = document.getElementById("series-names");
+    (t.series_names || []).forEach(n => { const li = document.createElement("li"); li.textContent = n; ul.appendChild(li); });
+  }).catch(() => {});
+</script>
 <script>
   // Signed out, the face still shows WHO this app is — the identity card
   // (the DID document is public by design; the card is the storyboard's
