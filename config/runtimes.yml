@@ -73,6 +73,8 @@ test:
 
 production:
   <<: *default
+  memory:
+    recall: lexical       # 4Gi Skyvim: skip loading the embedder in the web/jobs containers
   # The bundled local embedding model works in production too — it shipped with your
   # bundle, so there is nothing to pre-warm and no network to allow. To upgrade the
   # semantic signal to a cloud embedding model instead:

@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/pacificrobots/lightyear.git
-  revision: 3349d403ef6cf4f3ceee7d520272ff4c817dd57b
-  branch: feat/server-host-mounts
+  revision: 51056fa3619c37beaef756c3741b402778e016c9
+  branch: main
   specs:
     lightyear (0.0.1)
       lightyear-agents (= 0.0.1)
@@ -98,6 +98,7 @@ GIT
     lightyear-support (0.0.1)
       activerecord (~> 8.1)
       activesupport (~> 8.1)
+      json (< 3)
       zeitwerk (~> 2.7)
     lightyear-trust (0.0.1)
       activerecord (~> 8.1)
@@ -106,8 +107,8 @@ GIT
 
 GIT
   remote: https://github.com/pacificrobots/lightyear.git
-  revision: 3349d403ef6cf4f3ceee7d520272ff4c817dd57b
-  branch: feat/server-host-mounts
+  revision: 51056fa3619c37beaef756c3741b402778e016c9
+  branch: main
   glob: gems/lightyear-embedder-bge/*.gemspec
   specs:
     lightyear-embedder-bge (0.1.0)

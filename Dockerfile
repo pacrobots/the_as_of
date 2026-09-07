@@ -21,14 +21,7 @@ RUN --mount=type=secret,id=lightyear_gem_read_token \
     if [ -s /run/secrets/lightyear_gem_read_token ]; then \
       bundle config set --local github.com "x-access-token:$(cat /run/secrets/lightyear_gem_read_token)"; \
     fi && bundle install && bundle config unset --local github.com || true
-# TRANSITIONAL (dies at gold master): the embedder MODEL payload is not in
-# git — bake it into the image (checksum-verified by the gem's own build),
-# so production never fetches at runtime (the assets:precompile cousin).
-RUN bundle exec ruby -e 'require "lightyear/embedder_bge"; \
-      exit 0 if Lightyear::EmbedderBge.available?; \
-      gem_dir = Gem.loaded_specs["lightyear-embedder-bge"].full_gem_path; \
-      script = File.join(gem_dir, "build/fetch_data.rb"); \
-      system(RbConfig.ruby, script, chdir: gem_dir) || abort("model bake failed")'
+# Embedder model bake skipped: production recall is lexical on the 4Gi Skyvim box.
 COPY . .
 
 FROM base

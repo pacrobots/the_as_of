@@ -1,6 +1,9 @@
 .git
 .kamal
+.bundle
 log/*
 tmp/*
 storage/*
+vendor/lightyear
 clients/node_modules
+*.sqlite3

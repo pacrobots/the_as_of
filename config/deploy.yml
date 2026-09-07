@@ -2,7 +2,7 @@
 # DNS: asof.pacrobots.com A → 5.78.95.164 (skyvim). theasof.com does not
 # currently point here — Let's Encrypt needs the name to resolve to this box.
 service: as_of
-image: pacrobots/as_of
+image: walkaboutlanguages/as_of
 
 servers:
   web:
@@ -28,7 +28,7 @@ volumes:
 
 registry:
   server: ghcr.io
-  username: pacrobots
+  username: walkaboutlanguages
   password:
     - KAMAL_REGISTRY_PASSWORD
 

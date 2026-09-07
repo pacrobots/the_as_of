@@ -2,11 +2,10 @@
 
 source "https://rubygems.org"
 
-# Pinned to the Server.mount branch until pacificrobots/lightyear#55 merges,
-# then switch both to branch: "main". Local override:
-#   bundle config local.lightyear vendor/lightyear
-gem "lightyear", github: "pacificrobots/lightyear", branch: "feat/server-host-mounts"
-gem "lightyear-embedder-bge", github: "pacificrobots/lightyear", branch: "feat/server-host-mounts", glob: "gems/lightyear-embedder-bge/*.gemspec"
+# pacificrobots/lightyear#55 (Server.mount) is on main.
+# Local overlay: bundle config local.lightyear vendor/lightyear
+gem "lightyear", github: "pacificrobots/lightyear", branch: "main"
+gem "lightyear-embedder-bge", github: "pacificrobots/lightyear", branch: "main", glob: "gems/lightyear-embedder-bge/*.gemspec"
 gem "sqlite3", "~> 2.9"
 # json 3.0 dropped JSON.parse(str, opts); ActiveSupport 8.1 still passes quirks_mode.
 gem "json", "~> 2.13"
