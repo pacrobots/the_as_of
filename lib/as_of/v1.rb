@@ -32,6 +32,13 @@ module AsOf
 
           return json(200, source.as_meta.merge("as_of" => now, "as_of_data" => iso(source.published_at || source.retrieved_at)))
         end
+        if req.get? && (m = req.path.match(%r{\A/v1/rule/(.+)\z}))
+          rule = Rule.find_by(code: m[1])
+          return json(404, { "error" => { "code" => "not_found", "message" => "not found" } }) unless rule
+
+          data_at = rule.source&.published_at || rule.source&.retrieved_at || rule.updated_at
+          return json(200, rule.as_object.merge("as_of" => now, "as_of_data" => iso(data_at)))
+        end
         if req.get? && (m = req.path.match(%r{\A/v1/filing/(.+)\z}))
           filing = Filing.find_by(accession: m[1])
           return json(404, { "error" => { "code" => "not_found", "message" => "not found" } }) unless filing

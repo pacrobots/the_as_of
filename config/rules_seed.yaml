@@ -1,0 +1,13 @@
+# Pointers only. Full USC parse is not MVP. Do not invent statute text.
+rules:
+  - code: usc:26:174
+    title: "26 U.S.C. § 174 — Research and experimental expenditures"
+    status: in_force
+    effective_date: "2022-01-01"
+    supersedes: []
+    fragment: "26 USC 174"
+    exposures: ["R&D", "amortization"]
+    open_questions: ["Full USC parse is not MVP; this row is a pointer."]
+    url: "https://www.govinfo.gov/link/uscode/26/174"
+    native_id: "usc:26:174"
+    pointer_file: "config/rules/usc-26-174.pointer.txt"

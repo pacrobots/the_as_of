@@ -35,6 +35,19 @@ domain:
         - { name: unit, type: string, required: true }
         - { name: vintage, type: string, required: true, one_of: [official, derived, estimated, delayed] }
         - { name: observed_at, type: datetime, required: true }
+    - name: Rule
+      unique: [code]
+      belongs_to:
+        - { entity: source, optional: true }
+      fields:
+        - { name: code, type: string, required: true }
+        - { name: title, type: string, required: true }
+        - { name: status, type: string, required: true, one_of: [in_force, proposed, withdrawn, unknown] }
+        - { name: effective_date, type: date }
+        - { name: supersedes, type: json }
+        - { name: fragment, type: string }
+        - { name: exposures, type: json }
+        - { name: open_questions, type: json }
 
 connections:
   - name: edgar
@@ -61,6 +74,10 @@ skills:
     provides:
       - { verb: "series/browse", reads: SeriesSnapshot }
       - { verb: "series/describe", reads: SeriesSnapshot }
+  - name: rules
+    provides:
+      - { verb: "rule/browse", reads: Rule }
+      - { verb: "rule/describe", reads: Rule }
 
 agents:
   - name: Clerk
@@ -69,6 +86,7 @@ agents:
     charter:
       mission: >
         Hold the record desk. Retrieve hashed public-record sources, filing headers,
-        and official series snapshots. Do not extract claims, gloss, brief, or forecast.
-        Unknown → say unknown.
-    skills: [sources, filings, series]
+        official series snapshots, and seeded rule pointers. Do not extract claims,
+        gloss, brief, or forecast. Unknown → say unknown. Do not paraphrase a rule
+        without a pointer.
+    skills: [sources, filings, series, rules]

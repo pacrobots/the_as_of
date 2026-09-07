@@ -5,5 +5,6 @@ class ClerkAgent < ApplicationAgent
   skill Sources
   skill Filings
   skill Series
+  skill Rules
 end
 
