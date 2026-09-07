@@ -4,9 +4,27 @@
 
 realm = Lightyear.realm
 
+# The incumbent systems (the broker): onboard once, commission agents against them forever.
+
+# TODO(edgar): set its credential (blueprint named it "sec_user_agent") + complete base_url and each endpoint's method/path.
+unless realm.connections.exists?(system: "edgar")
+  realm.connect(:edgar, source_kind: :http, config: {
+    "base_url" => "https://data.sec.gov",
+    "user_agent" => ENV["SEC_USER_AGENT"],
+    "endpoints" => {
+      "edgar/fetch" => {
+        "method" => "get",
+        "path" => "/Archives/edgar/data/{cik}/{accession_nodash}/{accession}.txt",
+        "resource" => "accession",
+        "impact" => "low",
+      },
+    },
+  })
+end
+
 # Commission the workforce.
 clerk = ClerkAgent.register!(realm: realm, name: "Clerk", readiness: "supervised")
-clerk.set_charter(mission: "Hold the record desk. Retrieve hashed public-record sources. Do not extract claims, gloss, brief, or forecast. Unknown → say unknown.\n")
+clerk.set_charter(mission: "Hold the record desk. Retrieve hashed public-record sources and filing headers. Do not extract claims, gloss, brief, or forecast. Unknown → say unknown.\n")
 
 # The DEVELOPMENT operator (the both-hats posture): in development, YOU are the desk.
 if Lightyear.env == "development" && Lightyear.realm

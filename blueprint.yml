@@ -17,12 +17,32 @@ domain:
         - { name: content_hash, type: string, required: true }
         - { name: bytes, type: integer, required: true }
         - { name: license, type: string, required: true, default: unknown, one_of: [public_domain, us_gov, unknown] }
+    - name: Filing
+      unique: [accession]
+      belongs_to: [source]
+      fields:
+        - { name: accession, type: string, required: true }
+        - { name: cik, type: string, required: true }
+        - { name: form, type: string, required: true }
+        - { name: filed_at, type: datetime, required: true }
+        - { name: company_name, type: string }
+
+connections:
+  - name: edgar
+    source_kind: http
+    credential: sec_user_agent
+    provides:
+      - { verb: "edgar/fetch", resource: accession, impact: low }
 
 skills:
   - name: sources
     provides:
       - { verb: "source/browse", reads: Source }
       - { verb: "source/describe", reads: Source }
+  - name: filings
+    provides:
+      - { verb: "filing/browse", reads: Filing }
+      - { verb: "filing/describe", reads: Filing }
 
 agents:
   - name: Clerk
@@ -30,6 +50,6 @@ agents:
     readiness: supervised
     charter:
       mission: >
-        Hold the record desk. Retrieve hashed public-record sources.
+        Hold the record desk. Retrieve hashed public-record sources and filing headers.
         Do not extract claims, gloss, brief, or forecast. Unknown → say unknown.
-    skills: [sources]
+    skills: [sources, filings]

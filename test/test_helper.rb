@@ -12,6 +12,9 @@ require_relative "../config/lightyear"
 # travel_to, assert_queries_count, … — see the "Testing your app" guide.
 require "lightyear/test_help"
 require "minitest/autorun"
+require "logger"
+
+ActiveJob::Base.logger = Logger.new(IO::NULL)
 
 Lightyear::Support::TestCase.fixture_paths           = [File.expand_path("fixtures", __dir__)]
 Lightyear::Support::TestCase.use_transactional_tests = true
